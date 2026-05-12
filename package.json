@@ -1,0 +1,29 @@
+{
+  "name": "nomad",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "next": "^15.3.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@eslint/eslintrc": "^3.3.1",
+    "eslint": "^9.25.1",
+    "eslint-config-next": "^15.3.1",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}

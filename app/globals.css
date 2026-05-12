@@ -1,0 +1,274 @@
+:root {
+  color-scheme: light;
+  --background: #f6f4ef;
+  --surface: #ffffff;
+  --ink: #202320;
+  --muted: #62685f;
+  --line: #dedbd2;
+  --accent: #276c6b;
+  --accent-dark: #173f46;
+  --warning: #8a4c0f;
+  --warning-bg: #fff4df;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+main {
+  min-height: 100vh;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.7fr);
+  gap: 40px;
+  align-items: center;
+  padding: 72px min(6vw, 72px) 56px;
+  border-bottom: 1px solid var(--line);
+}
+
+.heroText {
+  max-width: 780px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: clamp(44px, 7vw, 84px);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+h2 {
+  margin-bottom: 8px;
+  font-size: 26px;
+  letter-spacing: 0;
+}
+
+h3 {
+  margin-bottom: 10px;
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.lede {
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.searchPanel {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 16px 50px rgb(32 35 32 / 0.08);
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fieldNote {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 6px;
+  font: inherit;
+}
+
+input,
+select {
+  border: 1px solid var(--line);
+  background: #fbfaf7;
+  color: var(--ink);
+  padding: 10px 12px;
+}
+
+button {
+  border: 0;
+  background: var(--accent-dark);
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.error {
+  margin: 0;
+  color: #a12222;
+  font-weight: 700;
+}
+
+.results {
+  padding: 32px min(6vw, 72px) 72px;
+}
+
+.summaryBand {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.summaryBand p,
+.sectionIntro p,
+.item p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.qualityBox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.qualityBox span,
+.itemHeader span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 8px;
+  background: #e9f1ed;
+  color: var(--accent-dark);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.warnings {
+  margin: 24px 0;
+  padding: 16px;
+  background: var(--warning-bg);
+  border: 1px solid #ead3a8;
+  border-radius: 8px;
+}
+
+.warnings p {
+  margin: 0 0 8px;
+  color: var(--warning);
+}
+
+.warnings p:last-child {
+  margin-bottom: 0;
+}
+
+.resultSection {
+  padding: 32px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.sectionIntro {
+  max-width: 760px;
+  margin-bottom: 18px;
+}
+
+.itemGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.item {
+  min-height: 160px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.smallText {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+@media (max-width: 820px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 40px;
+  }
+
+  h1 {
+    font-size: 48px;
+  }
+
+  .summaryBand {
+    display: grid;
+  }
+}
+
+@media (max-width: 520px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  h1 {
+    font-size: 40px;
+  }
+}
