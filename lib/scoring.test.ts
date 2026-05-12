@@ -139,4 +139,55 @@ describe("research map output", () => {
     expect(map.projectIdeas[0].reasonCodes.length).toBeGreaterThan(0);
     expect(map.people[0].id).toContain("https://openalex.org/A");
   });
+
+  it("builds a usable map from named test papers", () => {
+    const testPapers: OpenAlexWork[] = [
+      work("W-foundation", {
+        display_name: "Reduced-order modeling for HVAC airflow simulation",
+        publication_year: 2020,
+        cited_by_count: 220,
+        primary_topic: {
+          id: "https://openalex.org/T-hvac",
+          display_name: "HVAC airflow modeling"
+        }
+      }),
+      work("W-recent", {
+        display_name: "Physics-informed neural networks for indoor airflow prediction",
+        publication_year: 2026,
+        cited_by_count: 48,
+        primary_topic: {
+          id: "https://openalex.org/T-pinn",
+          display_name: "Physics-informed machine learning"
+        }
+      }),
+      work("W-project", {
+        display_name: "Machine learning surrogates for fast CFD design iteration",
+        publication_year: 2025,
+        cited_by_count: 64,
+        primary_topic: {
+          id: "https://openalex.org/T-surrogate",
+          display_name: "CFD surrogate modeling"
+        }
+      }),
+      ...Array.from({ length: 30 }, (_, index) =>
+        work(`W-test-${index}`, {
+          display_name: `Mechanical engineering test paper ${index} for HVAC CFD research maps`,
+          publication_year: 2021 + (index % 5),
+          cited_by_count: 8 + index,
+          primary_topic: {
+            id: index % 2 ? "https://openalex.org/T-hvac" : "https://openalex.org/T-surrogate",
+            display_name: index % 2 ? "HVAC airflow modeling" : "CFD surrogate modeling"
+          }
+        })
+      )
+    ];
+
+    const map = buildResearchMap({ ...request, field: "mechanical engineering" }, testPapers);
+
+    expect(map.foundationalPapers[0].title).toContain("Reduced-order modeling");
+    expect(map.recentInfluencePapers.some((paper) => paper.title.includes("Physics-informed"))).toBe(true);
+    expect(map.citationSignals.totalUsableWorks).toBe(33);
+    expect(map.clusters.map((cluster) => cluster.label)).toContain("HVAC airflow modeling");
+    expect(map.projectIdeas.every((idea) => idea.supportingPaperIds.length > 0)).toBe(true);
+  });
 });
