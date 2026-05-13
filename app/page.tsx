@@ -114,6 +114,7 @@ function ResearchMap({ result }: { result: ResearchMapResponse }) {
           <span>{result.dataQuality.deduplicatedWorks} deduped</span>
           <span>{result.dataQuality.excludedRetractedWorks} retracted excluded</span>
           <span>{result.dataQuality.worksWithAbstract} with abstracts</span>
+          <span>semantic {result.semanticSignals.enabled ? "on" : "fallback"}</span>
         </div>
       </div>
 
@@ -176,6 +177,14 @@ function ResearchMap({ result }: { result: ResearchMapResponse }) {
         <article className="item">
           <h3>Signal confidence</h3>
           <p>{result.citationSignals.confidence}</p>
+        </article>
+        <article className="item">
+          <h3>Semantic ranking</h3>
+          <p>
+            {result.semanticSignals.enabled
+              ? `${result.semanticSignals.embeddedPaperCount} papers embedded with ${result.semanticSignals.model}.`
+              : "Unavailable; using keyword and citation scoring only."}
+          </p>
         </article>
       </ResultSection>
 

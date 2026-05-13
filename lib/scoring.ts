@@ -13,6 +13,7 @@ import type {
   ResearcherRecommendation,
   TopicCluster
 } from "./types";
+import { applySemanticRelevance, blendRelevance, buildQueryText } from "./embeddings";
 
 const STOP_WORDS = new Set([
   "a",
@@ -39,10 +40,12 @@ const STOP_WORDS = new Set([
   "with"
 ]);
 
-export function buildResearchMap(request: ResearchMapRequest, works: OpenAlexWork[]): ResearchMapResponse {
+export async function buildResearchMap(request: ResearchMapRequest, works: OpenAlexWork[]): Promise<ResearchMapResponse> {
   const normalizedRequest = normalizeRequest(request);
   const normalized = normalizeWorks(normalizedRequest, works);
-  const scored = scoreWorks(normalizedRequest, normalized.works);
+  const initiallyScored = scoreWorks(normalizedRequest, normalized.works);
+  const semantic = await applySemanticRelevance(initiallyScored, buildQueryText(normalizedRequest.topic, normalizedRequest.field, normalizedRequest.goal));
+  const scored = scoreWorks(normalizedRequest, semantic.works);
   const clusters = buildClusters(scored);
   const foundationalPapers = scored
     .slice()
@@ -58,7 +61,7 @@ export function buildResearchMap(request: ResearchMapRequest, works: OpenAlexWor
   const projectIdeas = buildProjectIdeas(normalizedRequest, clusters, scored);
   const confidence = computeMapConfidence(scored.length, median(scored.map((work) => work.relevanceScore)));
   const dataQuality = buildDataQuality(works, normalized.works, normalized.dedupedCount, normalized.excludedRetractedCount);
-  const warnings = buildWarnings(dataQuality, confidence, median(scored.map((work) => work.relevanceScore)));
+  const warnings = buildWarnings(dataQuality, confidence, median(scored.map((work) => work.relevanceScore)), semantic.signals.enabled);
   const evidence = buildEvidence(foundationalPapers, recentInfluencePapers, people, clusters);
   const citationSignals = buildCitationSignals(scored, clusters, confidence);
 
@@ -70,6 +73,7 @@ export function buildResearchMap(request: ResearchMapRequest, works: OpenAlexWor
     people,
     clusters: clusters.slice(0, 8),
     citationSignals,
+    semanticSignals: semantic.signals,
     projectIdeas,
     evidence,
     warnings,
@@ -101,6 +105,7 @@ export function normalizeWorks(
     }
 
     const normalizedTitle = normalizeTitle(title);
+    const abstractText = reconstructAbstract(work.abstract_inverted_index);
     const doi = normalizeDoi(work.doi);
     const dedupeKey = doi ? `doi:${doi}` : `title:${normalizedTitle}:${year}`;
     if (seen.has(work.id) || seen.has(dedupeKey)) {
@@ -123,6 +128,8 @@ export function normalizeWorks(
       primaryTopic: work.primary_topic ?? null,
       topics: work.topics ?? [],
       keywords: (work.keywords ?? []).map((keyword) => keyword.display_name ?? "").filter(Boolean),
+      abstractText,
+      compactText: buildCompactText(title, abstractText, work.primary_topic, work.topics, work.keywords),
       type: work.type ?? null,
       isRetracted: Boolean(work.is_retracted),
       hasAbstract: Boolean(work.abstract_inverted_index),
@@ -138,6 +145,20 @@ export function normalizeWorks(
         work.keywords,
         work.relevance_score
       ),
+      keywordRelevanceScore: searchOrderRelevance(
+        index,
+        works.length,
+        request.topic,
+        request.field ?? "mechanical engineering",
+        title,
+        work.primary_topic,
+        work.topics,
+        work.keywords,
+        work.relevance_score
+      ),
+      semanticRelevanceScore: null,
+      finalRelevanceScore: 0,
+      embeddingModel: null,
       logCitationScore: 0,
       citationPercentileScore: 0,
       citationsPerYearScore: 0,
@@ -169,8 +190,11 @@ export function scoreWorks(request: ResearchMapRequest, works: NormalizedWork[])
     const ageWindow = Math.max(1, request.toYear - request.fromYear);
     const normalizedAge = Math.min(1, Math.max(0, (request.toYear - work.year) / ageWindow));
     const citationPercentileScore = clamp01(work.citationPercentile ?? localCitationPercentiles[index] ?? 0);
+    const finalRelevanceScore = blendRelevance(work.keywordRelevanceScore || work.relevanceScore, work.semanticRelevanceScore, citationPercentileScore);
     const scored = {
       ...work,
+      finalRelevanceScore,
+      relevanceScore: finalRelevanceScore,
       logCitationScore: localPercentile(logCitations[index] ?? 0, logCitations),
       citationPercentileScore,
       citationsPerYearScore: localPercentile(citationsPerYear[index] ?? 0, citationsPerYear),
@@ -178,14 +202,14 @@ export function scoreWorks(request: ResearchMapRequest, works: NormalizedWork[])
       citationsPerYear: citationsPerYear[index] ?? 0
     };
     scored.foundationalScore =
-      0.45 * scored.logCitationScore +
+      0.4 * scored.logCitationScore +
       0.25 * scored.citationPercentileScore +
-      0.2 * scored.relevanceScore +
+      0.25 * scored.finalRelevanceScore +
       0.1 * scored.sourceQualityScore;
     scored.recentInfluenceScore =
-      0.35 * scored.citationsPerYearScore +
+      0.3 * scored.citationsPerYearScore +
       0.25 * scored.recencyScore +
-      0.25 * scored.relevanceScore +
+      0.3 * scored.finalRelevanceScore +
       0.15 * scored.citationPercentileScore;
     return scored;
   });
@@ -296,7 +320,7 @@ export function buildProjectIdeas(request: ResearchMapRequest, clusters: TopicCl
       requiredBackground: requiredBackgroundFor(request.goal, cluster.label),
       supportingPaperIds: supportingWorks.map((work) => work.id),
       supportingClusterIds: [cluster.id],
-      reasonCodes: ["cluster-has-relevant-papers", "recent-influence-evidence", "evidence-backed-suggestion"],
+      reasonCodes: buildIdeaReasonCodes(supportingWorks),
       whyNow: `Evidence suggests this is worth exploring because ${cluster.paperCount} relevant works appeared in the selected range and ${(cluster.recentPaperShare * 100).toFixed(0)}% are recent.`,
       mvpVersion: `Read the top ${Math.min(5, supportingWorks.length)} supporting papers, reproduce one core method or comparison, and write a short evidence-backed summary of what is still hard.`,
       confidence
@@ -340,8 +364,11 @@ function buildDataQuality(
   };
 }
 
-function buildWarnings(dataQuality: DataQuality, confidence: Confidence, medianRelevance: number): string[] {
+function buildWarnings(dataQuality: DataQuality, confidence: Confidence, medianRelevance: number, semanticEnabled: boolean): string[] {
   const warnings: string[] = [];
+  if (!semanticEnabled) {
+    warnings.push("Semantic ranking unavailable; using keyword and citation scoring only.");
+  }
   if (confidence === "sparse") {
     warnings.push("Sparse data: this topic returned fewer than 25 usable works, so recommendations should be treated as exploratory.");
   }
@@ -424,6 +451,7 @@ function toPaperRecommendation(work: NormalizedWork, score: number, reasonCodes:
     citationCount: work.citationCount,
     citationsPerYear: Number(work.citationsPerYear.toFixed(2)),
     relevanceScore: Number(work.relevanceScore.toFixed(3)),
+    semanticRelevanceScore: work.semanticRelevanceScore === null ? null : Number(work.semanticRelevanceScore.toFixed(3)),
     score: Number(score.toFixed(3)),
     reasonCodes,
     authors: work.authors.slice(0, 5)
@@ -480,6 +508,55 @@ function searchOrderRelevance(
   const matchedTerms = queryTerms.filter((term) => haystack.includes(term)).length;
   const textMatchScore = queryTerms.length ? matchedTerms / queryTerms.length : 0;
   return clamp01(0.45 * openAlexRelevanceScore + 0.25 * searchPositionScore + 0.3 * textMatchScore);
+}
+
+export function reconstructAbstract(invertedIndex: OpenAlexWork["abstract_inverted_index"]): string | null {
+  if (!invertedIndex) {
+    return null;
+  }
+
+  const positionedWords: Array<{ word: string; position: number }> = [];
+  Object.entries(invertedIndex).forEach(([word, positions]) => {
+    positions.forEach((position) => positionedWords.push({ word, position }));
+  });
+
+  const abstract = positionedWords
+    .sort((a, b) => a.position - b.position)
+    .map((entry) => entry.word)
+    .join(" ")
+    .trim();
+
+  return abstract || null;
+}
+
+export function buildCompactText(
+  title: string,
+  abstractText: string | null,
+  primaryTopic: OpenAlexTopic | null | undefined,
+  topics: OpenAlexTopic[] | null | undefined,
+  keywords: OpenAlexWork["keywords"]
+): string {
+  const topicText = [primaryTopic?.display_name, ...(topics ?? []).map((topic) => topic.display_name)].filter(Boolean).join("; ");
+  const keywordText = (keywords ?? []).map((keyword) => keyword.display_name).filter(Boolean).join("; ");
+  return [
+    `Title: ${title}`,
+    abstractText ? `Abstract: ${abstractText}` : null,
+    topicText ? `Topics: ${topicText}` : null,
+    keywordText ? `Keywords: ${keywordText}` : null
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function buildIdeaReasonCodes(supportingWorks: NormalizedWork[]): string[] {
+  const codes = ["cluster-has-relevant-papers", "recent-influence-evidence", "evidence-backed-suggestion"];
+  if (supportingWorks.some((work) => work.semanticRelevanceScore !== null && work.semanticRelevanceScore >= 0.72)) {
+    codes.push("high-semantic-query-match");
+  }
+  if (supportingWorks.filter((work) => work.embeddingModel).length >= 3) {
+    codes.push("semantic-cluster-match");
+  }
+  return codes;
 }
 
 function requiredBackgroundFor(goal: ResearchMapRequest["goal"], label: string): string[] {

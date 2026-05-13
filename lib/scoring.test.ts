@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { buildOpenAlexWorksUrl } from "./openalex";
-import { buildResearchMap, computeMapConfidence, normalizeWorks, scoreWorks } from "./scoring";
+import { blendRelevance, cosineSimilarity } from "./embeddings";
+import { buildCompactText, buildResearchMap, computeMapConfidence, normalizeWorks, reconstructAbstract, scoreWorks } from "./scoring";
 import type { OpenAlexWork, ResearchMapRequest } from "./types";
 
 const request: ResearchMapRequest = {
@@ -102,7 +103,7 @@ describe("normalization and scoring", () => {
 });
 
 describe("research map output", () => {
-  it("returns the six sections and traceable project ideas", () => {
+  it("returns the six sections and traceable project ideas", async () => {
     const works = Array.from({ length: 35 }, (_, index) =>
       work(`W${index}`, {
         display_name: `Machine learning HVAC CFD paper ${index}`,
@@ -123,7 +124,7 @@ describe("research map output", () => {
       })
     );
 
-    const map = buildResearchMap(request, works);
+    const map = await buildResearchMap(request, works);
 
     expect(map.foundationalPapers.length).toBeGreaterThan(0);
     expect(map.recentInfluencePapers.length).toBeGreaterThan(0);
@@ -131,6 +132,8 @@ describe("research map output", () => {
     expect(map.clusters.length).toBeGreaterThan(0);
     expect(map.citationSignals.totalUsableWorks).toBeGreaterThan(0);
     expect(map.citationSignals.topClusterByPaperCount).toBeTruthy();
+    expect(map.semanticSignals.enabled).toBe(false);
+    expect(map.warnings).toContain("Semantic ranking unavailable; using keyword and citation scoring only.");
     expect(map.projectIdeas.length).toBeGreaterThan(0);
     expect(map.evidence.length).toBeGreaterThan(0);
     expect(map.query.field).toBe("mechanical engineering");
@@ -140,7 +143,7 @@ describe("research map output", () => {
     expect(map.people[0].id).toContain("https://openalex.org/A");
   });
 
-  it("builds a usable map from named test papers", () => {
+  it("builds a usable map from named test papers", async () => {
     const testPapers: OpenAlexWork[] = [
       work("W-foundation", {
         display_name: "Reduced-order modeling for HVAC airflow simulation",
@@ -182,12 +185,39 @@ describe("research map output", () => {
       )
     ];
 
-    const map = buildResearchMap({ ...request, field: "mechanical engineering" }, testPapers);
+    const map = await buildResearchMap({ ...request, field: "mechanical engineering" }, testPapers);
 
-    expect(map.foundationalPapers[0].title).toContain("Reduced-order modeling");
+    expect(map.foundationalPapers.some((paper) => paper.title.includes("Reduced-order modeling"))).toBe(true);
     expect(map.recentInfluencePapers.some((paper) => paper.title.includes("Physics-informed"))).toBe(true);
     expect(map.citationSignals.totalUsableWorks).toBe(33);
     expect(map.clusters.map((cluster) => cluster.label)).toContain("HVAC airflow modeling");
     expect(map.projectIdeas.every((idea) => idea.supportingPaperIds.length > 0)).toBe(true);
+  });
+});
+
+describe("semantic preparation", () => {
+  it("reconstructs OpenAlex inverted abstracts", () => {
+    expect(reconstructAbstract({ CFD: [2], for: [1], Fast: [0], design: [3] })).toBe("Fast for CFD design");
+  });
+
+  it("builds compact paper text from title, abstract, topics, and keywords", () => {
+    const text = buildCompactText(
+      "Fast HVAC CFD",
+      "A compact abstract.",
+      { display_name: "HVAC airflow modeling" },
+      [{ display_name: "Computational fluid dynamics" }],
+      [{ display_name: "surrogate models" }]
+    );
+
+    expect(text).toContain("Title: Fast HVAC CFD");
+    expect(text).toContain("Abstract: A compact abstract.");
+    expect(text).toContain("HVAC airflow modeling");
+    expect(text).toContain("surrogate models");
+  });
+
+  it("calculates cosine similarity and blends relevance", () => {
+    expect(cosineSimilarity([1, 0], [1, 0])).toBe(1);
+    expect(blendRelevance(0.5, 0.8, 0.4)).toBeCloseTo(0.585);
+    expect(blendRelevance(0.5, null, 0.4)).toBe(0.5);
   });
 });

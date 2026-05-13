@@ -23,6 +23,7 @@ export type PaperRecommendation = {
   citationCount: number;
   citationsPerYear: number;
   relevanceScore: number;
+  semanticRelevanceScore: number | null;
   score: number;
   reasonCodes: string[];
   authors: AuthorSummary[];
@@ -93,6 +94,13 @@ export type CitationSignals = {
   confidence: Confidence;
 };
 
+export type SemanticSignals = {
+  enabled: boolean;
+  model: string | null;
+  embeddedPaperCount: number;
+  failedPaperCount: number;
+};
+
 export type ResearchMapResponse = {
   query: ResearchMapRequest;
   confidence: Confidence;
@@ -101,6 +109,7 @@ export type ResearchMapResponse = {
   people: ResearcherRecommendation[];
   clusters: TopicCluster[];
   citationSignals: CitationSignals;
+  semanticSignals: SemanticSignals;
   projectIdeas: ProjectIdea[];
   evidence: EvidenceItem[];
   warnings: string[];
@@ -155,11 +164,17 @@ export type NormalizedWork = {
   primaryTopic: OpenAlexTopic | null;
   topics: OpenAlexTopic[];
   keywords: string[];
+  abstractText: string | null;
+  compactText: string;
   type: string | null;
   isRetracted: boolean;
   hasAbstract: boolean;
   url: string;
   relevanceScore: number;
+  keywordRelevanceScore: number;
+  semanticRelevanceScore: number | null;
+  finalRelevanceScore: number;
+  embeddingModel: string | null;
   logCitationScore: number;
   citationPercentileScore: number;
   citationsPerYearScore: number;

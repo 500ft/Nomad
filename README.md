@@ -26,6 +26,16 @@ npm test
 npm run build
 ```
 
+## Semantic Ranking
+
+Nomad can use OpenAI embeddings to improve relevance and clustering:
+
+```bash
+OPENAI_API_KEY=... npm run dev
+```
+
+If `OPENAI_API_KEY` is not set, the website still works and falls back to keyword, citation, and metadata scoring.
+
 ## MVP Scope
 
 - Topic search
@@ -33,6 +43,7 @@ npm run build
 - Recent-influence paper ranking
 - People-of-interest ranking
 - Topic clustering from OpenAlex topics and keywords
+- Optional semantic relevance from OpenAI `text-embedding-3-small`
 - Citation signals
 - Evidence-backed project ideas
 - Computed confidence, warnings, and data-quality metrics
