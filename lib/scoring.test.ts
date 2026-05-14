@@ -2,8 +2,18 @@ import { describe, expect, it } from "vitest";
 
 import { buildOpenAlexWorksUrl } from "./openalex";
 import { blendRelevance, cosineSimilarity } from "./embeddings";
-import { buildCompactText, buildResearchMap, computeMapConfidence, normalizeWorks, reconstructAbstract, scoreWorks } from "./scoring";
-import type { OpenAlexWork, ResearchMapRequest } from "./types";
+import {
+  buildCompactText,
+  buildResearchDirectionSummary,
+  buildResearchMap,
+  calculateDirectionMomentumScore,
+  computeMapConfidence,
+  getLowerActivityConfidence,
+  normalizeWorks,
+  reconstructAbstract,
+  scoreWorks
+} from "./scoring";
+import type { OpenAlexWork, ResearchMapRequest, TopicCluster } from "./types";
 
 const request: ResearchMapRequest = {
   topic: "machine learning for HVAC CFD",
@@ -132,6 +142,7 @@ describe("research map output", () => {
     expect(map.clusters.length).toBeGreaterThan(0);
     expect(map.citationSignals.totalUsableWorks).toBeGreaterThan(0);
     expect(map.citationSignals.topClusterByPaperCount).toBeTruthy();
+    expect(map.researchDirectionSummary.briefSummary).toContain("result set");
     expect(map.semanticSignals.enabled).toBe(false);
     expect(map.warnings).toContain("Semantic ranking unavailable; using keyword and citation scoring only.");
     expect(map.projectIdeas.length).toBeGreaterThan(0);
@@ -195,6 +206,33 @@ describe("research map output", () => {
   });
 });
 
+describe("research direction summary", () => {
+  const clusters: TopicCluster[] = [
+    cluster("strong-soft-robotics", "Soft robotics", 10, 0.8, 0.78, 0.82),
+    cluster("weak-service-robotics", "Service robotics", 9, 0.12, 0.18, 0.4),
+    cluster("single-paper-noise", "Single paper topic", 1, 1, 0.95, 0.9)
+  ];
+
+  it("computes composite direction momentum score", () => {
+    expect(calculateDirectionMomentumScore(clusters[0])).toBeCloseTo(0.828);
+  });
+
+  it("identifies stronger and weaker signals while excluding one-paper clusters", () => {
+    const summary = buildResearchDirectionSummary(clusters);
+
+    expect(summary.strongerRecentActivity.map((signal) => signal.label)).toContain("Soft robotics");
+    expect(summary.weakerRecentPaperSignal.map((signal) => signal.label)).toContain("Service robotics");
+    expect(summary.strongerRecentActivity.map((signal) => signal.label)).not.toContain("Single paper topic");
+    expect(summary.weakerRecentPaperSignal.map((signal) => signal.label)).not.toContain("Single paper topic");
+    expect(summary.strongerRecentActivity[0].supportingPaperIds.length).toBeGreaterThan(0);
+  });
+
+  it("never marks weaker recent-paper signals as strong", () => {
+    expect(getLowerActivityConfidence(20)).toBe("moderate");
+    expect(buildResearchDirectionSummary(clusters).weakerRecentPaperSignal.every((signal) => signal.confidence !== "strong")).toBe(true);
+  });
+});
+
 describe("semantic preparation", () => {
   it("reconstructs OpenAlex inverted abstracts", () => {
     expect(reconstructAbstract({ CFD: [2], for: [1], Fast: [0], design: [3] })).toBe("Fast for CFD design");
@@ -221,3 +259,23 @@ describe("semantic preparation", () => {
     expect(blendRelevance(0.5, null, 0.4)).toBe(0.5);
   });
 });
+
+function cluster(
+  id: string,
+  label: string,
+  paperCount: number,
+  recentPaperShare: number,
+  averageRecentInfluenceScore: number,
+  averageRelevanceScore: number
+): TopicCluster {
+  return {
+    id,
+    label,
+    score: 0.5,
+    paperCount,
+    recentPaperShare,
+    averageRecentInfluenceScore,
+    averageRelevanceScore,
+    paperIds: Array.from({ length: paperCount }, (_, index) => `${id}-paper-${index}`)
+  };
+}

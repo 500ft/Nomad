@@ -94,6 +94,25 @@ export type CitationSignals = {
   confidence: Confidence;
 };
 
+export type SummarySignal = {
+  label: string;
+  reason: string;
+  paperCount: number;
+  recentPaperShare: number;
+  averageRecentInfluenceScore: number;
+  averageRelevanceScore: number;
+  directionMomentumScore: number;
+  supportingPaperIds: string[];
+  confidence: Confidence;
+};
+
+export type ResearchDirectionSummary = {
+  strongerRecentActivity: SummarySignal[];
+  weakerRecentPaperSignal: SummarySignal[];
+  briefSummary: string;
+  limitations: string[];
+};
+
 export type SemanticSignals = {
   enabled: boolean;
   model: string | null;
@@ -109,6 +128,7 @@ export type ResearchMapResponse = {
   people: ResearcherRecommendation[];
   clusters: TopicCluster[];
   citationSignals: CitationSignals;
+  researchDirectionSummary: ResearchDirectionSummary;
   semanticSignals: SemanticSignals;
   projectIdeas: ProjectIdea[];
   evidence: EvidenceItem[];

@@ -10,7 +10,9 @@ import type {
   ProjectIdea,
   ResearchMapRequest,
   ResearchMapResponse,
+  ResearchDirectionSummary,
   ResearcherRecommendation,
+  SummarySignal,
   TopicCluster
 } from "./types";
 import { applySemanticRelevance, blendRelevance, buildQueryText } from "./embeddings";
@@ -64,6 +66,7 @@ export async function buildResearchMap(request: ResearchMapRequest, works: OpenA
   const warnings = buildWarnings(dataQuality, confidence, median(scored.map((work) => work.relevanceScore)), semantic.signals.enabled);
   const evidence = buildEvidence(foundationalPapers, recentInfluencePapers, people, clusters);
   const citationSignals = buildCitationSignals(scored, clusters, confidence);
+  const researchDirectionSummary = buildResearchDirectionSummary(clusters);
 
   return {
     query: normalizedRequest,
@@ -73,6 +76,7 @@ export async function buildResearchMap(request: ResearchMapRequest, works: OpenA
     people,
     clusters: clusters.slice(0, 8),
     citationSignals,
+    researchDirectionSummary,
     semanticSignals: semantic.signals,
     projectIdeas,
     evidence,
@@ -400,6 +404,103 @@ function buildCitationSignals(works: NormalizedWork[], clusters: TopicCluster[],
     recentPaperShare: works.length ? works.filter((work) => currentYear - work.year <= 5).length / works.length : 0,
     confidence
   };
+}
+
+export function calculateDirectionMomentumScore(cluster: Pick<TopicCluster, "paperCount" | "recentPaperShare" | "averageRecentInfluenceScore" | "averageRelevanceScore">): number {
+  const recentPaperShareScore = cluster.recentPaperShare;
+  const paperCountConfidenceScore = Math.min(1, cluster.paperCount / 8);
+  return clamp01(
+    0.35 * recentPaperShareScore +
+      0.3 * cluster.averageRecentInfluenceScore +
+      0.2 * cluster.averageRelevanceScore +
+      0.15 * paperCountConfidenceScore
+  );
+}
+
+export function getSummaryConfidence(paperCount: number, recentPaperShare: number): Confidence {
+  if (paperCount >= 8 && recentPaperShare >= 0.55) {
+    return "strong";
+  }
+  if (paperCount >= 3) {
+    return "moderate";
+  }
+  return "sparse";
+}
+
+export function getLowerActivityConfidence(paperCount: number): Confidence {
+  if (paperCount >= 8) {
+    return "moderate";
+  }
+  return "sparse";
+}
+
+export function buildResearchDirectionSummary(clusters: TopicCluster[]): ResearchDirectionSummary {
+  const eligibleClusters = clusters.filter((cluster) => cluster.paperCount >= 3);
+  const signals = eligibleClusters.map((cluster) => {
+    const directionMomentumScore = calculateDirectionMomentumScore(cluster);
+    return {
+      cluster,
+      directionMomentumScore
+    };
+  });
+
+  const strongerRecentActivity: SummarySignal[] = signals
+    .filter((signal) => signal.directionMomentumScore >= 0.7)
+    .sort((a, b) => b.directionMomentumScore - a.directionMomentumScore)
+    .slice(0, 3)
+    .map(({ cluster, directionMomentumScore }) => ({
+      label: cluster.label,
+      reason: `${cluster.label} has a stronger recent-paper signal in this result set, with ${(cluster.recentPaperShare * 100).toFixed(0)}% recent-paper share and ${cluster.paperCount} supporting works.`,
+      paperCount: cluster.paperCount,
+      recentPaperShare: Number(cluster.recentPaperShare.toFixed(3)),
+      averageRecentInfluenceScore: Number(cluster.averageRecentInfluenceScore.toFixed(3)),
+      averageRelevanceScore: Number(cluster.averageRelevanceScore.toFixed(3)),
+      directionMomentumScore: Number(directionMomentumScore.toFixed(3)),
+      supportingPaperIds: cluster.paperIds,
+      confidence: getSummaryConfidence(cluster.paperCount, cluster.recentPaperShare)
+    }));
+
+  const weakerRecentPaperSignal: SummarySignal[] = signals
+    .filter((signal) => signal.directionMomentumScore <= 0.4)
+    .sort((a, b) => a.directionMomentumScore - b.directionMomentumScore)
+    .slice(0, 3)
+    .map(({ cluster, directionMomentumScore }) => ({
+      label: cluster.label,
+      reason: `${cluster.label} has a weaker recent-paper signal in this result set, with ${(cluster.recentPaperShare * 100).toFixed(0)}% recent-paper share across ${cluster.paperCount} supporting works.`,
+      paperCount: cluster.paperCount,
+      recentPaperShare: Number(cluster.recentPaperShare.toFixed(3)),
+      averageRecentInfluenceScore: Number(cluster.averageRecentInfluenceScore.toFixed(3)),
+      averageRelevanceScore: Number(cluster.averageRelevanceScore.toFixed(3)),
+      directionMomentumScore: Number(directionMomentumScore.toFixed(3)),
+      supportingPaperIds: cluster.paperIds,
+      confidence: getLowerActivityConfidence(cluster.paperCount)
+    }));
+
+  return {
+    strongerRecentActivity,
+    weakerRecentPaperSignal,
+    briefSummary: buildDirectionBrief(strongerRecentActivity, weakerRecentPaperSignal),
+    limitations: [
+      "These are OpenAlex metadata signals, not proof that a field is growing, abandoned, or guaranteed to produce good projects.",
+      "Lower recent-paper signal means weaker activity in this result set, not that researchers have stopped working on the area."
+    ]
+  };
+}
+
+function buildDirectionBrief(strongerRecentActivity: SummarySignal[], weakerRecentPaperSignal: SummarySignal[]): string {
+  const strongerLabels = strongerRecentActivity.map((signal) => signal.label).join(", ");
+  const weakerLabels = weakerRecentPaperSignal.map((signal) => signal.label).join(", ");
+
+  if (strongerLabels && weakerLabels) {
+    return `This result set shows stronger recent activity around ${strongerLabels}, while ${weakerLabels} show weaker recent-paper signals.`;
+  }
+  if (strongerLabels) {
+    return `This result set shows stronger recent activity around ${strongerLabels}.`;
+  }
+  if (weakerLabels) {
+    return `This result set shows weaker recent-paper signals around ${weakerLabels}.`;
+  }
+  return "No clear direction summary was produced because the cluster evidence did not meet the minimum sample-size and momentum thresholds.";
 }
 
 function buildEvidence(

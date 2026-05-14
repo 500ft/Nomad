@@ -186,6 +186,27 @@ function ResearchMap({ result }: { result: ResearchMapResponse }) {
               : "Unavailable; using keyword and citation scoring only."}
           </p>
         </article>
+        <article className="item directionSummary">
+          <h3>Research Direction Summary</h3>
+          <p>{result.researchDirectionSummary.briefSummary}</p>
+          <p className="smallText">{result.researchDirectionSummary.limitations[0]}</p>
+        </article>
+        <article className="item directionSummary">
+          <h3>Stronger recent activity in this result set</h3>
+          {result.researchDirectionSummary.strongerRecentActivity.length ? (
+            result.researchDirectionSummary.strongerRecentActivity.map((signal) => <DirectionSignal key={signal.label} signal={signal} />)
+          ) : (
+            <p>No cluster met the stronger recent-activity threshold.</p>
+          )}
+        </article>
+        <article className="item directionSummary">
+          <h3>Weaker recent-paper signal in this result set</h3>
+          {result.researchDirectionSummary.weakerRecentPaperSignal.length ? (
+            result.researchDirectionSummary.weakerRecentPaperSignal.map((signal) => <DirectionSignal key={signal.label} signal={signal} />)
+          ) : (
+            <p>No cluster met the weaker recent-paper signal threshold.</p>
+          )}
+        </article>
       </ResultSection>
 
       <ResultSection title="Project Ideas" subtitle="Possible project ideas generated only from supporting papers and clusters.">
@@ -204,6 +225,21 @@ function ResearchMap({ result }: { result: ResearchMapResponse }) {
       </ResultSection>
 
     </section>
+  );
+}
+
+function DirectionSignal({ signal }: { signal: ResearchMapResponse["researchDirectionSummary"]["strongerRecentActivity"][number] }) {
+  return (
+    <div className="signalBlock">
+      <div className="itemHeader">
+        <h4>{signal.label}</h4>
+        <span>{signal.confidence}</span>
+      </div>
+      <p>{signal.reason}</p>
+      <p className="smallText">
+        momentum {signal.directionMomentumScore.toFixed(2)} | {signal.paperCount} papers | {(signal.recentPaperShare * 100).toFixed(0)}% recent
+      </p>
+    </div>
   );
 }
 
