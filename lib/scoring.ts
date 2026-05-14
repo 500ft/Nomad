@@ -1,5 +1,6 @@
 import type {
   AuthorSummary,
+  CitationHistoryResult,
   Confidence,
   DataQuality,
   EvidenceItem,
@@ -16,6 +17,12 @@ import type {
   TopicCluster
 } from "./types";
 import { applySemanticRelevance, blendRelevance, buildQueryText } from "./embeddings";
+import { fetchCitationHistoryForWorks } from "./openalex";
+
+const FOUNDATIONAL_LIMIT = 5;
+const WATCH_NOW_LIMIT = 5;
+const PEOPLE_LIMIT = 5;
+const CLUSTER_LIMIT = 6;
 
 const STOP_WORDS = new Set([
   "a",
@@ -42,7 +49,11 @@ const STOP_WORDS = new Set([
   "with"
 ]);
 
-export async function buildResearchMap(request: ResearchMapRequest, works: OpenAlexWork[]): Promise<ResearchMapResponse> {
+export async function buildResearchMap(
+  request: ResearchMapRequest,
+  works: OpenAlexWork[],
+  citationHistoryFetcher = fetchCitationHistoryForWorks
+): Promise<ResearchMapResponse> {
   const normalizedRequest = normalizeRequest(request);
   const normalized = normalizeWorks(normalizedRequest, works);
   const initiallyScored = scoreWorks(normalizedRequest, normalized.works);
@@ -52,18 +63,22 @@ export async function buildResearchMap(request: ResearchMapRequest, works: OpenA
   const foundationalPapers = scored
     .slice()
     .sort((a, b) => b.foundationalScore - a.foundationalScore)
-    .slice(0, 10)
+    .slice(0, FOUNDATIONAL_LIMIT)
     .map((work) => toPaperRecommendation(work, work.foundationalScore, ["high-citation-signal", "topic-relevant"]));
-  const recentInfluencePapers = scored
+  const recentInfluencePapersWithoutHistory = scored
     .slice()
     .sort((a, b) => b.recentInfluenceScore - a.recentInfluenceScore)
-    .slice(0, 10)
+    .slice(0, WATCH_NOW_LIMIT)
     .map((work) => toPaperRecommendation(work, work.recentInfluenceScore, ["recent-influence-proxy", "topic-relevant"]));
+  const recentInfluencePapers = await enrichWithCitationHistory(recentInfluencePapersWithoutHistory, citationHistoryFetcher);
   const people = buildPeople(scored, recentInfluencePapers.map((paper) => paper.id));
   const projectIdeas = buildProjectIdeas(normalizedRequest, clusters, scored);
   const confidence = computeMapConfidence(scored.length, median(scored.map((work) => work.relevanceScore)));
   const dataQuality = buildDataQuality(works, normalized.works, normalized.dedupedCount, normalized.excludedRetractedCount);
   const warnings = buildWarnings(dataQuality, confidence, median(scored.map((work) => work.relevanceScore)), semantic.signals.enabled);
+  if (recentInfluencePapers.length && recentInfluencePapers.every((paper) => paper.citationHistoryStatus === "unavailable")) {
+    warnings.push("Citation history unavailable; using citations/year proxy for Watch Now.");
+  }
   const evidence = buildEvidence(foundationalPapers, recentInfluencePapers, people, clusters);
   const citationSignals = buildCitationSignals(scored, clusters, confidence);
   const researchDirectionSummary = buildResearchDirectionSummary(clusters);
@@ -74,7 +89,7 @@ export async function buildResearchMap(request: ResearchMapRequest, works: OpenA
     foundationalPapers,
     recentInfluencePapers,
     people,
-    clusters: clusters.slice(0, 8),
+    clusters: clusters.slice(0, CLUSTER_LIMIT),
     citationSignals,
     researchDirectionSummary,
     semanticSignals: semantic.signals,
@@ -306,7 +321,7 @@ export function buildPeople(works: NormalizedWork[], recentInfluencePaperIds: st
     })
     .filter((person) => person.relevantPaperCount > 1 || person.risingPaperInvolvementCount > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
+    .slice(0, PEOPLE_LIMIT);
 }
 
 export function buildProjectIdeas(request: ResearchMapRequest, clusters: TopicCluster[], works: NormalizedWork[]): ProjectIdea[] {
@@ -555,8 +570,34 @@ function toPaperRecommendation(work: NormalizedWork, score: number, reasonCodes:
     semanticRelevanceScore: work.semanticRelevanceScore === null ? null : Number(work.semanticRelevanceScore.toFixed(3)),
     score: Number(score.toFixed(3)),
     reasonCodes,
-    authors: work.authors.slice(0, 5)
+    authors: work.authors.slice(0, 5),
+    citationHistory: null,
+    citationHistoryStatus: "unavailable",
+    citationHistoryNote: "Citation history unavailable. Showing citations/year proxy instead."
   };
+}
+
+async function enrichWithCitationHistory(
+  papers: PaperRecommendation[],
+  citationHistoryFetcher: (workIds: string[]) => Promise<Map<string, CitationHistoryResult>>
+): Promise<PaperRecommendation[]> {
+  if (!papers.length) {
+    return papers;
+  }
+
+  const histories = await citationHistoryFetcher(papers.map((paper) => paper.id));
+  return papers.map((paper) => {
+    const result = histories.get(paper.id);
+    if (!result) {
+      return paper;
+    }
+    return {
+      ...paper,
+      citationHistory: result.history,
+      citationHistoryStatus: result.status,
+      citationHistoryNote: result.note
+    };
+  });
 }
 
 function normalizeAuthors(authorships: OpenAlexWork["authorships"]): AuthorSummary[] {

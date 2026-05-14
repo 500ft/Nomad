@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildOpenAlexWorksUrl } from "./openalex";
+import { buildCitationHistoryResult, buildOpenAlexCitationHistoryUrl, buildOpenAlexWorksUrl, normalizeOpenAlexWorkId } from "./openalex";
 import { blendRelevance, cosineSimilarity } from "./embeddings";
 import {
   buildCompactText,
@@ -13,7 +13,7 @@ import {
   reconstructAbstract,
   scoreWorks
 } from "./scoring";
-import type { OpenAlexWork, ResearchMapRequest, TopicCluster } from "./types";
+import type { CitationHistoryResult, OpenAlexWork, ResearchMapRequest, TopicCluster } from "./types";
 
 const request: ResearchMapRequest = {
   topic: "machine learning for HVAC CFD",
@@ -59,6 +59,19 @@ function work(id: string, overrides: Partial<OpenAlexWork> = {}): OpenAlexWork {
   };
 }
 
+async function unavailableCitationHistory(workIds: string[]): Promise<Map<string, CitationHistoryResult>> {
+  return new Map(
+    workIds.map((workId) => [
+      workId,
+      {
+        status: "unavailable",
+        history: null,
+        note: "Citation history unavailable. Showing citations/year proxy instead."
+      }
+    ])
+  );
+}
+
 describe("OpenAlex query construction", () => {
   it("filters upstream and selects explicit fields", () => {
     const url = buildOpenAlexWorksUrl(request);
@@ -69,6 +82,15 @@ describe("OpenAlex query construction", () => {
     expect(url).toContain("is_retracted%3Afalse");
     expect(url).toContain("select=");
     expect(url).toContain("per-page=200");
+  });
+
+  it("builds citation history URLs from short and full OpenAlex work IDs", () => {
+    expect(normalizeOpenAlexWorkId("https://openalex.org/W123")).toBe("W123");
+    expect(normalizeOpenAlexWorkId("W456")).toBe("W456");
+
+    const url = buildOpenAlexCitationHistoryUrl("https://openalex.org/W123");
+    expect(url).toContain("filter=cites%3AW123");
+    expect(url).toContain("group_by=publication_year");
   });
 });
 
@@ -134,12 +156,14 @@ describe("research map output", () => {
       })
     );
 
-    const map = await buildResearchMap(request, works);
+    const map = await buildResearchMap(request, works, unavailableCitationHistory);
 
-    expect(map.foundationalPapers.length).toBeGreaterThan(0);
-    expect(map.recentInfluencePapers.length).toBeGreaterThan(0);
+    expect(map.foundationalPapers).toHaveLength(5);
+    expect(map.recentInfluencePapers).toHaveLength(5);
     expect(map.people.length).toBeGreaterThan(0);
+    expect(map.people.length).toBeLessThanOrEqual(5);
     expect(map.clusters.length).toBeGreaterThan(0);
+    expect(map.clusters.length).toBeLessThanOrEqual(6);
     expect(map.citationSignals.totalUsableWorks).toBeGreaterThan(0);
     expect(map.citationSignals.topClusterByPaperCount).toBeTruthy();
     expect(map.researchDirectionSummary.briefSummary).toContain("result set");
@@ -152,6 +176,8 @@ describe("research map output", () => {
     expect(map.projectIdeas[0].supportingClusterIds.length).toBeGreaterThan(0);
     expect(map.projectIdeas[0].reasonCodes.length).toBeGreaterThan(0);
     expect(map.people[0].id).toContain("https://openalex.org/A");
+    expect(map.recentInfluencePapers[0].citationHistoryStatus).toBe("unavailable");
+    expect(map.recentInfluencePapers[0].citationHistoryNote).toContain("citations/year proxy");
   });
 
   it("builds a usable map from named test papers", async () => {
@@ -196,13 +222,43 @@ describe("research map output", () => {
       )
     ];
 
-    const map = await buildResearchMap({ ...request, field: "mechanical engineering" }, testPapers);
+    const map = await buildResearchMap({ ...request, field: "mechanical engineering" }, testPapers, unavailableCitationHistory);
 
     expect(map.foundationalPapers.some((paper) => paper.title.includes("Reduced-order modeling"))).toBe(true);
     expect(map.recentInfluencePapers.some((paper) => paper.title.includes("Physics-informed"))).toBe(true);
     expect(map.citationSignals.totalUsableWorks).toBe(33);
     expect(map.clusters.map((cluster) => cluster.label)).toContain("HVAC airflow modeling");
     expect(map.projectIdeas.every((idea) => idea.supportingPaperIds.length > 0)).toBe(true);
+  });
+});
+
+describe("citation history", () => {
+  it("converts grouped OpenAlex citation counts into sorted yearly history", () => {
+    const result = buildCitationHistoryResult([
+      { key: 2024, count: 15 },
+      { key: 2022, count: 3 },
+      { key: 2023, count: 9 }
+    ]);
+
+    expect(result.status).toBe("available");
+    expect(result.history?.map((item) => item.year)).toEqual([2022, 2023, 2024]);
+    expect(result.history?.map((item) => item.citationCount)).toEqual([3, 9, 15]);
+    expect(result.note).toContain("increased");
+  });
+
+  it("marks the current year as partial", () => {
+    const currentYear = new Date().getFullYear();
+    const result = buildCitationHistoryResult([{ key: currentYear, count: 5 }]);
+
+    expect(result.history?.[0]).toMatchObject({ year: currentYear, isPartialYear: true });
+  });
+
+  it("returns unavailable citation history for empty grouped responses", () => {
+    const result = buildCitationHistoryResult([]);
+
+    expect(result.status).toBe("unavailable");
+    expect(result.history).toBeNull();
+    expect(result.note).toContain("citations/year proxy");
   });
 });
 

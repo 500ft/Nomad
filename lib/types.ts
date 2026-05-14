@@ -27,6 +27,23 @@ export type PaperRecommendation = {
   score: number;
   reasonCodes: string[];
   authors: AuthorSummary[];
+  citationHistory: CitationYear[] | null;
+  citationHistoryStatus: CitationHistoryStatus;
+  citationHistoryNote: string;
+};
+
+export type CitationYear = {
+  year: number;
+  citationCount: number;
+  isPartialYear: boolean;
+};
+
+export type CitationHistoryStatus = "available" | "unavailable";
+
+export type CitationHistoryResult = {
+  status: CitationHistoryStatus;
+  history: CitationYear[] | null;
+  note: string;
 };
 
 export type AuthorSummary = {

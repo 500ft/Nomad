@@ -271,6 +271,52 @@ a {
   border-top: 0;
 }
 
+.citationHistory {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.citationBars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(38px, 1fr));
+  gap: 8px;
+  align-items: end;
+  min-height: 112px;
+}
+
+.citationBarItem {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.citationBarTrack {
+  position: relative;
+  width: 100%;
+  max-width: 34px;
+  height: 64px;
+  overflow: hidden;
+  background: #edf0eb;
+  border-radius: 5px;
+}
+
+.citationBarFill {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--accent);
+  border-radius: 5px 5px 0 0;
+}
+
+.citationBarItem strong {
+  color: var(--ink);
+  font-size: 11px;
+}
+
 @media (max-width: 820px) {
   .hero {
     grid-template-columns: 1fr;

@@ -130,8 +130,8 @@ function ResearchMap({ result }: { result: ResearchMapResponse }) {
         {result.foundationalPapers.map((paper) => <PaperCard key={paper.id} paper={paper} />)}
       </ResultSection>
 
-      <ResultSection title="Watch Now" subtitle="Recent influence proxy. This is not yearly citation acceleration.">
-        {result.recentInfluencePapers.map((paper) => <PaperCard key={paper.id} paper={paper} />)}
+      <ResultSection title="Watch Now" subtitle="Top 5 recent-influence papers with citation-history evidence when available.">
+        {result.recentInfluencePapers.map((paper) => <PaperCard key={paper.id} paper={paper} showCitationHistory />)}
       </ResultSection>
 
       <ResultSection title="People of Interest" subtitle="Authors ranked by OpenAlex ID, repeated relevance, recent work, and recent-influence involvement.">
@@ -255,7 +255,7 @@ function ResultSection({ title, subtitle, children }: { title: string; subtitle:
   );
 }
 
-function PaperCard({ paper }: { paper: ResearchMapResponse["foundationalPapers"][number] }) {
+function PaperCard({ paper, showCitationHistory = false }: { paper: ResearchMapResponse["foundationalPapers"][number]; showCitationHistory?: boolean }) {
   return (
     <article className="item">
       <div className="itemHeader">
@@ -265,8 +265,35 @@ function PaperCard({ paper }: { paper: ResearchMapResponse["foundationalPapers"]
       <p>
         {paper.year} | {paper.citationCount} citations | {paper.citationsPerYear.toFixed(1)} citations/year
       </p>
+      {showCitationHistory ? <CitationHistory paper={paper} /> : null}
       <p>{paper.authors.map((author) => author.name).join(", ")}</p>
       <a href={paper.url} target="_blank" rel="noreferrer">OpenAlex record</a>
     </article>
+  );
+}
+
+function CitationHistory({ paper }: { paper: ResearchMapResponse["recentInfluencePapers"][number] }) {
+  if (paper.citationHistoryStatus !== "available" || !paper.citationHistory?.length) {
+    return <p className="smallText">{paper.citationHistoryNote}</p>;
+  }
+
+  const maxCount = Math.max(1, ...paper.citationHistory.map((item) => item.citationCount));
+
+  return (
+    <div className="citationHistory">
+      <p className="smallText">{paper.citationHistoryNote}</p>
+      <div className="citationBars" aria-label="Yearly citation history from OpenAlex citing-work publication years">
+        {paper.citationHistory.map((item) => (
+          <div className="citationBarItem" key={item.year}>
+            <div className="citationBarTrack">
+              <div className="citationBarFill" style={{ height: `${Math.max(8, (item.citationCount / maxCount) * 100)}%` }} />
+            </div>
+            <span>{item.year}{item.isPartialYear ? "*" : ""}</span>
+            <strong>{item.citationCount}</strong>
+          </div>
+        ))}
+      </div>
+      {paper.citationHistory.some((item) => item.isPartialYear) ? <p className="smallText">* Current year is partial.</p> : null}
+    </div>
   );
 }
