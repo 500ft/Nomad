@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
+import { visibleCitationHistory } from "@/lib/citation-history-view";
 import type { ResearchMapResponse } from "@/lib/types";
 
 const currentYear = new Date().getFullYear();
@@ -295,18 +296,22 @@ function CitationHistory({ paper }: { paper: ResearchMapResponse["recentInfluenc
     return <p className="smallText">{paper.citationHistoryNote}</p>;
   }
 
-  const maxCount = Math.max(1, ...paper.citationHistory.map((item) => item.citationCount));
+  const visibleHistory = visibleCitationHistory(paper.citationHistory);
+  if (!visibleHistory.length) {
+    return <p className="smallText">No nonzero yearly citation counts available. Showing citations/year proxy instead.</p>;
+  }
+
+  const maxCount = Math.max(1, ...visibleHistory.map((item) => item.citationCount));
 
   return (
     <div className="citationHistory">
       <p className="smallText">
         {paper.citationHistorySource === "openalex-counts-by-year"
-          ? "Recent yearly citations from OpenAlex."
+          ? "Recent yearly citations from OpenAlex. Years with zero citations are hidden."
           : "Yearly citing-work counts from OpenAlex grouped fallback."}
       </p>
-      <p className="smallText">{paper.citationHistoryNote}</p>
       <div className="citationBars" aria-label="Recent yearly citations from OpenAlex">
-        {paper.citationHistory.map((item) => (
+        {visibleHistory.map((item) => (
           <div className="citationBarItem" key={item.year}>
             <div className="citationBarTrack">
               <div className="citationBarFill" style={{ height: `${Math.max(8, (item.citationCount / maxCount) * 100)}%` }} />
@@ -316,7 +321,7 @@ function CitationHistory({ paper }: { paper: ResearchMapResponse["recentInfluenc
           </div>
         ))}
       </div>
-      {paper.citationHistory.some((item) => item.isPartialYear) ? <p className="smallText">* Current year is partial.</p> : null}
+      {visibleHistory.some((item) => item.isPartialYear) ? <p className="smallText">* Current year is partial.</p> : null}
     </div>
   );
 }

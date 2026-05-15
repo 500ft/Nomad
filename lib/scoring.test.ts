@@ -8,6 +8,7 @@ import {
   buildOpenAlexWorksUrl,
   normalizeOpenAlexWorkId
 } from "./openalex";
+import { visibleCitationHistory } from "./citation-history-view";
 import { blendRelevance, cosineSimilarity } from "./embeddings";
 import {
   buildCompactText,
@@ -309,6 +310,27 @@ describe("citation history", () => {
     expect(result.history?.find((item) => item.year === currentYear - 1)?.citationCount).toBe(0);
     expect(result.history?.find((item) => item.year === currentYear)?.isPartialYear).toBe(true);
     expect(result.note).toContain("Recent yearly citations from OpenAlex");
+  });
+
+  it("hides zero-count years from the visible citation chart", async () => {
+    const currentYear = new Date().getFullYear();
+    const visible = visibleCitationHistory([
+      { year: currentYear - 2, citationCount: 0, isPartialYear: false },
+      { year: currentYear - 1, citationCount: 12, isPartialYear: false },
+      { year: currentYear, citationCount: 0, isPartialYear: true }
+    ]);
+
+    expect(visible).toEqual([{ year: currentYear - 1, citationCount: 12, isPartialYear: false }]);
+    expect(visible.some((item) => item.isPartialYear)).toBe(false);
+  });
+
+  it("returns no visible citation years when all chart counts are zero", async () => {
+    expect(
+      visibleCitationHistory([
+        { year: 2024, citationCount: 0, isPartialYear: false },
+        { year: 2025, citationCount: 0, isPartialYear: false }
+      ])
+    ).toHaveLength(0);
   });
 });
 

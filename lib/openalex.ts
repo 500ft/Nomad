@@ -228,7 +228,7 @@ export function buildCitationHistoryFromCountsByYear(countsByYear: OpenAlexCount
     status: "available",
     history,
     source: "openalex-counts-by-year",
-    note: "Recent yearly citations from OpenAlex counts_by_year. Missing years in the recent window are shown as 0."
+    note: "Recent yearly citations from OpenAlex counts_by_year."
   };
 }
 
