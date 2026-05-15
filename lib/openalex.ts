@@ -1,4 +1,4 @@
-import type { CitationHistoryResult, CitationYear, OpenAlexWork, ResearchMapRequest } from "./types";
+import type { CitationHistoryResult, CitationYear, OpenAlexCountByYear, OpenAlexWork, ResearchMapRequest } from "./types";
 
 const OPENALEX_WORKS_URL = "https://api.openalex.org/works";
 const CACHE_TTL_MS = 60 * 60 * 1000;
@@ -19,7 +19,25 @@ const SELECT_FIELDS = [
   "keywords",
   "type",
   "is_retracted",
-  "abstract_inverted_index"
+  "abstract_inverted_index",
+  "counts_by_year",
+  "referenced_works",
+  "referenced_works_count",
+  "fwci",
+  "cited_by_api_url"
+].join(",");
+const REFERENCE_SELECT_FIELDS = [
+  "id",
+  "display_name",
+  "publication_year",
+  "cited_by_count",
+  "citation_normalized_percentile",
+  "fwci",
+  "primary_topic",
+  "topics",
+  "keywords",
+  "type",
+  "authorships"
 ].join(",");
 
 export function buildOpenAlexWorksUrl(request: ResearchMapRequest, perPage = 200): string {
@@ -61,6 +79,34 @@ export async function fetchOpenAlexWorks(request: ResearchMapRequest): Promise<O
   const works = payload.results ?? [];
   worksCache.set(cacheKey, { expiresAt: Date.now() + CACHE_TTL_MS, works });
   return works;
+}
+
+export function buildOpenAlexWorksByIdsUrl(ids: string[]): string {
+  const url = new URL(OPENALEX_WORKS_URL);
+  url.searchParams.set("filter", `ids.openalex:${ids.map(normalizeOpenAlexWorkId).join("|")}`);
+  url.searchParams.set("select", REFERENCE_SELECT_FIELDS);
+  url.searchParams.set("per-page", String(Math.min(Math.max(ids.length, 1), 100)));
+  return url.toString();
+}
+
+export async function fetchOpenAlexWorksByIds(ids: string[]): Promise<OpenAlexWork[]> {
+  if (!ids.length) {
+    return [];
+  }
+
+  const response = await fetch(buildOpenAlexWorksByIdsUrl(ids), {
+    headers: {
+      Accept: "application/json"
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAlex reference request failed with status ${response.status}`);
+  }
+
+  const payload = (await response.json()) as { results?: OpenAlexWork[] };
+  return payload.results ?? [];
 }
 
 export function normalizeOpenAlexWorkId(id: string): string {
@@ -114,6 +160,7 @@ export async function fetchCitationHistoryForWork(workId: string): Promise<Citat
     const result: CitationHistoryResult = {
       status: "unavailable",
       history: null,
+      source: null,
       note: "Citation history unavailable. Showing citations/year proxy instead."
     };
     citationHistoryCache.set(normalizedId, { expiresAt: Date.now() + CACHE_TTL_MS, result });
@@ -136,6 +183,7 @@ export function buildCitationHistoryResult(groups: OpenAlexGroup[]): CitationHis
     return {
       status: "unavailable",
       history: null,
+      source: null,
       note: "Citation history unavailable. Showing citations/year proxy instead."
     };
   }
@@ -143,7 +191,44 @@ export function buildCitationHistoryResult(groups: OpenAlexGroup[]): CitationHis
   return {
     status: "available",
     history,
+    source: "openalex-cited-by-grouped-fallback",
     note: summarizeCitationHistory(history)
+  };
+}
+
+export function buildCitationHistoryFromCountsByYear(countsByYear: OpenAlexCountByYear[] | null | undefined): CitationHistoryResult {
+  const currentYear = new Date().getFullYear();
+  const yearCounts = new Map<number, number>();
+  for (const item of countsByYear ?? []) {
+    if (typeof item.year === "number" && item.year > 0) {
+      yearCounts.set(item.year, item.cited_by_count ?? 0);
+    }
+  }
+
+  if (!yearCounts.size) {
+    return {
+      status: "unavailable",
+      history: null,
+      source: null,
+      note: "Recent yearly citations from OpenAlex unavailable. Showing citations/year proxy instead."
+    };
+  }
+
+  const startYear = currentYear - 9;
+  const history: CitationYear[] = Array.from({ length: 10 }, (_, index) => {
+    const year = startYear + index;
+    return {
+      year,
+      citationCount: yearCounts.get(year) ?? 0,
+      isPartialYear: year === currentYear
+    };
+  });
+
+  return {
+    status: "available",
+    history,
+    source: "openalex-counts-by-year",
+    note: "Recent yearly citations from OpenAlex counts_by_year. Missing years in the recent window are shown as 0."
   };
 }
 

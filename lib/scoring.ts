@@ -1,9 +1,11 @@
 import type {
   AuthorSummary,
+  CitationNetworkSignals,
   CitationHistoryResult,
   Confidence,
   DataQuality,
   EvidenceItem,
+  EvidenceType,
   NormalizedWork,
   OpenAlexTopic,
   OpenAlexWork,
@@ -13,16 +15,24 @@ import type {
   ResearchMapResponse,
   ResearchDirectionSummary,
   ResearcherRecommendation,
+  SharedReferenceEvidence,
   SummarySignal,
   TopicCluster
 } from "./types";
 import { applySemanticRelevance, blendRelevance, buildQueryText } from "./embeddings";
-import { fetchCitationHistoryForWorks } from "./openalex";
+import { buildCitationHistoryFromCountsByYear, fetchCitationHistoryForWorks, fetchOpenAlexWorksByIds, normalizeOpenAlexWorkId } from "./openalex";
 
 const FOUNDATIONAL_LIMIT = 5;
 const WATCH_NOW_LIMIT = 5;
 const PEOPLE_LIMIT = 5;
 const CLUSTER_LIMIT = 6;
+const RELEVANCE_SEED_LIMIT = 5;
+const REQUEST_BUDGET_MAX = 7;
+const INITIAL_OPENALEX_REQUESTS = 1;
+const SHARED_REFERENCE_MIN_FREQUENCY = 2;
+const SHARED_REFERENCE_FETCH_LIMIT = 20;
+const OPENALEX_ID_CHUNK_SIZE = 20;
+const GRAPH_BOOST_CAP = 0.05;
 
 const STOP_WORDS = new Set([
   "a",
@@ -52,32 +62,55 @@ const STOP_WORDS = new Set([
 export async function buildResearchMap(
   request: ResearchMapRequest,
   works: OpenAlexWork[],
-  citationHistoryFetcher = fetchCitationHistoryForWorks
+  citationHistoryFetcher = fetchCitationHistoryForWorks,
+  referenceFetcher = fetchOpenAlexWorksByIds
 ): Promise<ResearchMapResponse> {
+  const requestBudget = createRequestBudget();
   const normalizedRequest = normalizeRequest(request);
   const normalized = normalizeWorks(normalizedRequest, works);
   const initiallyScored = scoreWorks(normalizedRequest, normalized.works);
   const semantic = await applySemanticRelevance(initiallyScored, buildQueryText(normalizedRequest.topic, normalizedRequest.field, normalizedRequest.goal));
   const scored = scoreWorks(normalizedRequest, semantic.works);
   const clusters = buildClusters(scored);
-  const foundationalPapers = scored
+  const initialFoundationalWorks = scored
     .slice()
     .sort((a, b) => b.foundationalScore - a.foundationalScore)
-    .slice(0, FOUNDATIONAL_LIMIT)
-    .map((work) => toPaperRecommendation(work, work.foundationalScore, ["high-citation-signal", "topic-relevant"]));
-  const recentInfluencePapersWithoutHistory = scored
+    .slice(0, FOUNDATIONAL_LIMIT);
+  const recentInfluenceWorks = scored
     .slice()
     .sort((a, b) => b.recentInfluenceScore - a.recentInfluenceScore)
-    .slice(0, WATCH_NOW_LIMIT)
-    .map((work) => toPaperRecommendation(work, work.recentInfluenceScore, ["recent-influence-proxy", "topic-relevant"]));
-  const recentInfluencePapers = await enrichWithCitationHistory(recentInfluencePapersWithoutHistory, citationHistoryFetcher);
+    .slice(0, WATCH_NOW_LIMIT);
+  const relevanceSeedWorks = scored
+    .slice()
+    .sort((a, b) => b.finalRelevanceScore - a.finalRelevanceScore)
+    .slice(0, RELEVANCE_SEED_LIMIT);
+  const citationNetworkSignals = await buildCitationNetworkSignals(
+    normalizedRequest,
+    dedupeWorks([...initialFoundationalWorks, ...recentInfluenceWorks, ...relevanceSeedWorks]),
+    clusters,
+    requestBudget,
+    referenceFetcher
+  );
+  const graphSupported = applyGraphSupport(scored, citationNetworkSignals);
+  const foundationalPapers = graphSupported
+    .slice()
+    .sort((a, b) => clamp01(b.foundationalScore + b.graphSupportScore) - clamp01(a.foundationalScore + a.graphSupportScore))
+    .slice(0, FOUNDATIONAL_LIMIT)
+    .map((work) => toPaperRecommendation(work, clamp01(work.foundationalScore + work.graphSupportScore), ["high-citation-signal", "topic-relevant"]));
+  const recentInfluencePapersWithoutHistory = recentInfluenceWorks.map((work) =>
+    toPaperRecommendation(work, work.recentInfluenceScore, ["recent-influence-proxy", "topic-relevant"])
+  );
+  const recentInfluencePapers = await enrichWithCitationHistory(recentInfluencePapersWithoutHistory, requestBudget, citationHistoryFetcher);
   const people = buildPeople(scored, recentInfluencePapers.map((paper) => paper.id));
-  const projectIdeas = buildProjectIdeas(normalizedRequest, clusters, scored);
+  const projectIdeas = buildProjectIdeas(normalizedRequest, clusters, scored, citationNetworkSignals);
   const confidence = computeMapConfidence(scored.length, median(scored.map((work) => work.relevanceScore)));
   const dataQuality = buildDataQuality(works, normalized.works, normalized.dedupedCount, normalized.excludedRetractedCount);
   const warnings = buildWarnings(dataQuality, confidence, median(scored.map((work) => work.relevanceScore)), semantic.signals.enabled);
   if (recentInfluencePapers.length && recentInfluencePapers.every((paper) => paper.citationHistoryStatus === "unavailable")) {
     warnings.push("Citation history unavailable; using citations/year proxy for Watch Now.");
+  }
+  if (requestBudget.remaining() === 0) {
+    warnings.push("OpenAlex request budget reached; optional citation-network or citation-history fallbacks may be incomplete.");
   }
   const evidence = buildEvidence(foundationalPapers, recentInfluencePapers, people, clusters);
   const citationSignals = buildCitationSignals(scored, clusters, confidence);
@@ -91,6 +124,10 @@ export async function buildResearchMap(
     people,
     clusters: clusters.slice(0, CLUSTER_LIMIT),
     citationSignals,
+    citationNetworkSignals: {
+      ...citationNetworkSignals,
+      requestBudgetUsed: requestBudget.used
+    },
     researchDirectionSummary,
     semanticSignals: semantic.signals,
     projectIdeas,
@@ -142,7 +179,7 @@ export function normalizeWorks(
       year,
       publicationDate: work.publication_date ?? null,
       citationCount: work.cited_by_count ?? 0,
-      citationPercentile: work.citation_normalized_percentile?.value ?? null,
+      citationPercentileValue: work.citation_normalized_percentile?.value ?? null,
       authors: normalizeAuthors(work.authorships),
       primaryTopic: work.primary_topic ?? null,
       topics: work.topics ?? [],
@@ -152,6 +189,11 @@ export function normalizeWorks(
       type: work.type ?? null,
       isRetracted: Boolean(work.is_retracted),
       hasAbstract: Boolean(work.abstract_inverted_index),
+      countsByYear: work.counts_by_year ?? [],
+      referencedWorks: work.referenced_works ?? [],
+      referencedWorksCount: work.referenced_works_count ?? null,
+      fwci: work.fwci ?? null,
+      citedByApiUrl: work.cited_by_api_url ?? null,
       url: work.id,
       relevanceScore: searchOrderRelevance(
         index,
@@ -183,6 +225,9 @@ export function normalizeWorks(
       citationsPerYearScore: 0,
       recencyScore: 0,
       sourceQualityScore: sourceQualityScore(work.type),
+      graphSupportScore: 0,
+      graphSupportSeedCount: 0,
+      graphSupportSeedTotal: 0,
       foundationalScore: 0,
       recentInfluenceScore: 0,
       citationsPerYear: 0
@@ -208,7 +253,7 @@ export function scoreWorks(request: ResearchMapRequest, works: NormalizedWork[])
   return works.map((work, index) => {
     const ageWindow = Math.max(1, request.toYear - request.fromYear);
     const normalizedAge = Math.min(1, Math.max(0, (request.toYear - work.year) / ageWindow));
-    const citationPercentileScore = clamp01(work.citationPercentile ?? localCitationPercentiles[index] ?? 0);
+    const citationPercentileScore = clamp01(work.citationPercentileValue ?? localCitationPercentiles[index] ?? 0);
     const finalRelevanceScore = blendRelevance(work.keywordRelevanceScore || work.relevanceScore, work.semanticRelevanceScore, citationPercentileScore);
     const scored = {
       ...work,
@@ -324,12 +369,31 @@ export function buildPeople(works: NormalizedWork[], recentInfluencePaperIds: st
     .slice(0, PEOPLE_LIMIT);
 }
 
-export function buildProjectIdeas(request: ResearchMapRequest, clusters: TopicCluster[], works: NormalizedWork[]): ProjectIdea[] {
+export function buildProjectIdeas(
+  request: ResearchMapRequest,
+  clusters: TopicCluster[],
+  works: NormalizedWork[],
+  citationNetworkSignals: CitationNetworkSignals
+): ProjectIdea[] {
   return clusters.slice(0, 5).map((cluster) => {
     const supportingWorks = cluster.paperIds
       .map((paperId) => works.find((work) => work.id === paperId))
       .filter((work): work is NormalizedWork => Boolean(work))
       .slice(0, 6);
+    const supportingReferenceIds = citationNetworkSignals.topSharedReferences
+      .filter((reference) => reference.relevanceGatePassed)
+      .slice(0, 3)
+      .map((reference) => reference.id);
+    const evidenceTypes: EvidenceType[] = ["cluster-signal"];
+    if (supportingWorks.some((work) => new Date().getFullYear() - work.year <= 5)) {
+      evidenceTypes.push("recent-paper");
+    }
+    if (supportingWorks.some((work) => work.citationPercentileScore >= 0.85)) {
+      evidenceTypes.push("high-normalized-citation");
+    }
+    if (supportingReferenceIds.length) {
+      evidenceTypes.push("shared-reference");
+    }
     const confidence = computeProjectConfidence(supportingWorks.length, [cluster.id]);
     const difficulty = request.experienceLevel === "beginner" ? "beginner" : request.experienceLevel === "technical" ? "advanced" : "intermediate";
     return {
@@ -342,7 +406,20 @@ export function buildProjectIdeas(request: ResearchMapRequest, clusters: TopicCl
       reasonCodes: buildIdeaReasonCodes(supportingWorks),
       whyNow: `Evidence suggests this is worth exploring because ${cluster.paperCount} relevant works appeared in the selected range and ${(cluster.recentPaperShare * 100).toFixed(0)}% are recent.`,
       mvpVersion: `Read the top ${Math.min(5, supportingWorks.length)} supporting papers, reproduce one core method or comparison, and write a short evidence-backed summary of what is still hard.`,
-      confidence
+      confidence,
+      traceability: {
+        supportingPaperIds: supportingWorks.map((work) => work.id),
+        supportingClusterIds: [cluster.id],
+        supportingReferenceIds,
+        evidenceTypes,
+        evidenceNote: supportingReferenceIds.length
+          ? `This possible direction is tied to ${supportingWorks.length} papers, the ${cluster.label} cluster, and ${supportingReferenceIds.length} shared references that passed deterministic relevance gates.`
+          : `This possible direction is tied to ${supportingWorks.length} papers and the ${cluster.label} cluster; no shared reference evidence passed the graph gates.`,
+        limitations: [
+          "Traceability shows supporting evidence in this OpenAlex result set, not proof of novelty.",
+          "Shared references are supporting context only and may include methods or review papers."
+        ]
+      }
     };
   });
 }
@@ -365,6 +442,201 @@ export function computeProjectConfidence(supportingPaperCount: number, supportin
     return "moderate";
   }
   return "sparse";
+}
+
+type RequestBudget = {
+  readonly max: 7;
+  used: number;
+  remaining: () => number;
+  tryUse: (count: number) => boolean;
+};
+
+function createRequestBudget(): RequestBudget {
+  return {
+    max: REQUEST_BUDGET_MAX,
+    used: INITIAL_OPENALEX_REQUESTS,
+    remaining() {
+      return Math.max(0, this.max - this.used);
+    },
+    tryUse(count: number) {
+      if (this.used + count > this.max) {
+        return false;
+      }
+      this.used += count;
+      return true;
+    }
+  };
+}
+
+export function calculateGraphSupportScore(input: {
+  sharedReferenceHit: boolean;
+  seedReferenceFrequencyNormalized: number;
+  topicOverlapHit: boolean;
+  citationPercentileHit: boolean;
+}): number {
+  return Math.min(
+    GRAPH_BOOST_CAP,
+    (input.sharedReferenceHit ? 0.02 : 0) +
+      0.015 * clamp01(input.seedReferenceFrequencyNormalized) +
+      (input.topicOverlapHit ? 0.01 : 0) +
+      (input.citationPercentileHit ? 0.005 : 0)
+  );
+}
+
+export function passesSharedReferenceRelevanceGate(input: {
+  titleOverlapScore: number;
+  topicOverlapScore: number;
+  keywordOverlapScore: number;
+  citationPercentileValue: number | null;
+  embeddingSimilarityScore?: number | null;
+}): boolean {
+  return (
+    input.titleOverlapScore >= 0.25 ||
+    input.topicOverlapScore >= 0.34 ||
+    input.keywordOverlapScore >= 0.25 ||
+    (input.citationPercentileValue ?? 0) >= 0.85 ||
+    (input.embeddingSimilarityScore ?? 0) >= 0.7
+  );
+}
+
+async function buildCitationNetworkSignals(
+  request: ResearchMapRequest,
+  seedWorks: NormalizedWork[],
+  clusters: TopicCluster[],
+  requestBudget: RequestBudget,
+  referenceFetcher: (ids: string[]) => Promise<OpenAlexWork[]>
+): Promise<CitationNetworkSignals> {
+  const seedPaperIds = seedWorks.map((work) => work.id);
+  const referenceCounts = new Map<string, { ids: Set<string> }>();
+  for (const seed of seedWorks) {
+    for (const referenceId of seed.referencedWorks) {
+      const normalizedReferenceId = normalizeOpenAlexWorkId(referenceId);
+      const entry = referenceCounts.get(normalizedReferenceId) ?? { ids: new Set<string>() };
+      entry.ids.add(seed.id);
+      referenceCounts.set(normalizedReferenceId, entry);
+    }
+  }
+
+  const sharedReferenceEntries = Array.from(referenceCounts.entries())
+    .map(([id, entry]) => ({ id, referencedBySeedPaperIds: Array.from(entry.ids), referenceFrequency: entry.ids.size }))
+    .filter((entry) => entry.referenceFrequency >= SHARED_REFERENCE_MIN_FREQUENCY)
+    .sort((a, b) => b.referenceFrequency - a.referenceFrequency)
+    .slice(0, SHARED_REFERENCE_FETCH_LIMIT);
+
+  const chunks = chunk(sharedReferenceEntries.map((entry) => entry.id), OPENALEX_ID_CHUNK_SIZE);
+  const fetchedWorks: OpenAlexWork[] = [];
+  for (const ids of chunks) {
+    if (!requestBudget.tryUse(1)) {
+      break;
+    }
+    try {
+      fetchedWorks.push(...(await referenceFetcher(ids)));
+    } catch {
+      // The graph layer is supporting evidence; the map should still render if reference fetches fail.
+    }
+  }
+
+  const entryById = new Map(sharedReferenceEntries.map((entry) => [entry.id, entry]));
+  const queryContext = buildQueryContext(request, clusters);
+  const dominantTopics = new Set(clusters.slice(0, 6).flatMap((cluster) => tokenize(cluster.label)));
+  const topSharedReferences = fetchedWorks
+    .map((work) => {
+      const id = normalizeOpenAlexWorkId(work.id);
+      const entry = entryById.get(id);
+      const title = work.display_name ?? "Untitled reference";
+      const titleOverlapScore = jaccard(tokenize(title), queryContext);
+      const topicOverlapScore = topicOverlap(work, dominantTopics);
+      const keywordOverlapScore = keywordOverlap(work, queryContext);
+      const citationNormalizedPercentile = work.citation_normalized_percentile?.value ?? null;
+      const citationPercentileHit = (citationNormalizedPercentile ?? 0) >= 0.85;
+      const relevanceGatePassed = passesSharedReferenceRelevanceGate({
+        titleOverlapScore,
+        topicOverlapScore,
+        keywordOverlapScore,
+        citationPercentileValue: citationNormalizedPercentile
+      });
+      const evidenceTypes: SharedReferenceEvidence["evidenceTypes"] = ["shared-reference"];
+      if (topicOverlapScore >= 0.34) {
+        evidenceTypes.push("topic-overlap");
+      }
+      if (citationPercentileHit) {
+        evidenceTypes.push("citation-percentile");
+      }
+      if (sourceQualityScore(work.type) >= 0.75) {
+        evidenceTypes.push("source-quality");
+      }
+      return {
+        id: work.id,
+        title,
+        publicationYear: work.publication_year ?? null,
+        citedByCount: work.cited_by_count ?? null,
+        citationNormalizedPercentile,
+        fwci: work.fwci ?? null,
+        referencedBySeedPaperIds: entry?.referencedBySeedPaperIds ?? [],
+        referenceFrequency: entry?.referenceFrequency ?? 0,
+        relevanceGatePassed,
+        evidenceTypes
+      };
+    })
+    .filter((reference) => reference.relevanceGatePassed)
+    .sort((a, b) => b.referenceFrequency - a.referenceFrequency);
+
+  const seedPapersWithReferences = seedWorks.filter((work) => work.referencedWorks.length > 0).length;
+  return {
+    seedPaperIds,
+    seedPaperCount: seedWorks.length,
+    seedPapersWithReferences,
+    fetchedReferenceCount: fetchedWorks.length,
+    sharedReferenceCount: sharedReferenceEntries.length,
+    graphCoverageRatio: seedWorks.length ? Number((seedPapersWithReferences / seedWorks.length).toFixed(3)) : 0,
+    requestBudgetUsed: requestBudget.used,
+    requestBudgetMax: REQUEST_BUDGET_MAX,
+    topSharedReferences,
+    limitations: [
+      "Reference overlap is supporting evidence only, not proof of field importance.",
+      "Shared references must pass deterministic relevance gates before they support project ideas.",
+      requestBudget.remaining() === 0 ? "OpenAlex request budget was exhausted, so optional graph or citation fallbacks may be skipped." : ""
+    ].filter(Boolean)
+  };
+}
+
+function applyGraphSupport(works: NormalizedWork[], signals: CitationNetworkSignals): NormalizedWork[] {
+  const referenceByShortId = new Map(signals.topSharedReferences.map((reference) => [normalizeOpenAlexWorkId(reference.id), reference]));
+  return works.map((work) => {
+    const reference = referenceByShortId.get(normalizeOpenAlexWorkId(work.id));
+    if (!reference) {
+      return {
+        ...work,
+        graphSupportScore: 0,
+        graphSupportSeedCount: 0,
+        graphSupportSeedTotal: signals.seedPaperCount
+      };
+    }
+    const seedReferenceFrequencyNormalized = signals.seedPaperCount ? reference.referenceFrequency / signals.seedPaperCount : 0;
+    const graphSupportScore = calculateGraphSupportScore({
+      sharedReferenceHit: true,
+      seedReferenceFrequencyNormalized,
+      topicOverlapHit: reference.evidenceTypes.includes("topic-overlap"),
+      citationPercentileHit: (reference.citationNormalizedPercentile ?? 0) >= 0.85
+    });
+    return {
+      ...work,
+      graphSupportScore,
+      graphSupportSeedCount: reference.referenceFrequency,
+      graphSupportSeedTotal: signals.seedPaperCount
+    };
+  });
+}
+
+function dedupeWorks(works: NormalizedWork[]): NormalizedWork[] {
+  const seen = new Set<string>();
+  return works.filter((work) => {
+    if (seen.has(work.id)) {
+      return false;
+    }
+    seen.add(work.id);
+    return true;
+  });
 }
 
 function buildDataQuality(
@@ -557,6 +829,7 @@ function buildEvidence(
 }
 
 function toPaperRecommendation(work: NormalizedWork, score: number, reasonCodes: string[]): PaperRecommendation {
+  const countsByYearHistory = buildCitationHistoryFromCountsByYear(work.countsByYear);
   return {
     id: work.id,
     title: work.title,
@@ -571,21 +844,31 @@ function toPaperRecommendation(work: NormalizedWork, score: number, reasonCodes:
     score: Number(score.toFixed(3)),
     reasonCodes,
     authors: work.authors.slice(0, 5),
-    citationHistory: null,
-    citationHistoryStatus: "unavailable",
-    citationHistoryNote: "Citation history unavailable. Showing citations/year proxy instead."
+    citationHistory: countsByYearHistory.history,
+    citationHistoryStatus: countsByYearHistory.status,
+    citationHistorySource: countsByYearHistory.source,
+    citationHistoryNote: countsByYearHistory.note,
+    graphSupportScore: Number(work.graphSupportScore.toFixed(3)),
+    graphSupportNote: work.graphSupportSeedCount
+      ? `Graph support: cited by ${work.graphSupportSeedCount} of ${Math.max(1, work.graphSupportSeedTotal)} seed papers.`
+      : null
   };
 }
 
 async function enrichWithCitationHistory(
   papers: PaperRecommendation[],
+  requestBudget: RequestBudget,
   citationHistoryFetcher: (workIds: string[]) => Promise<Map<string, CitationHistoryResult>>
 ): Promise<PaperRecommendation[]> {
   if (!papers.length) {
     return papers;
   }
 
-  const histories = await citationHistoryFetcher(papers.map((paper) => paper.id));
+  const missingHistoryPapers = papers.filter((paper) => paper.citationHistoryStatus === "unavailable");
+  const fallbackTargets = missingHistoryPapers.slice(0, requestBudget.remaining());
+  const histories = fallbackTargets.length && requestBudget.tryUse(fallbackTargets.length)
+    ? await citationHistoryFetcher(fallbackTargets.map((paper) => paper.id))
+    : new Map<string, CitationHistoryResult>();
   return papers.map((paper) => {
     const result = histories.get(paper.id);
     if (!result) {
@@ -595,6 +878,7 @@ async function enrichWithCitationHistory(
       ...paper,
       citationHistory: result.history,
       citationHistoryStatus: result.status,
+      citationHistorySource: result.source,
       citationHistoryNote: result.note
     };
   });
@@ -760,6 +1044,58 @@ function average(values: number[]): number {
     return 0;
   }
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function buildQueryContext(request: ResearchMapRequest, clusters: TopicCluster[]): string[] {
+  return uniqueTokens(tokenize([request.topic, request.field ?? "mechanical engineering", ...clusters.slice(0, 6).map((cluster) => cluster.label)].join(" ")));
+}
+
+function topicOverlap(work: OpenAlexWork, contextTokens: Set<string>): number {
+  const topicTokens = uniqueTokens(
+    [
+      work.primary_topic?.id ?? "",
+      work.primary_topic?.display_name ?? "",
+      ...(work.topics ?? []).flatMap((topic) => [topic.id ?? "", topic.display_name ?? ""])
+    ].flatMap(tokenize)
+  );
+  if (!topicTokens.length || !contextTokens.size) {
+    return 0;
+  }
+  const matches = topicTokens.filter((token) => contextTokens.has(token)).length;
+  return clamp01(matches / topicTokens.length);
+}
+
+function keywordOverlap(work: OpenAlexWork, contextTokens: string[]): number {
+  const keywordTokens = uniqueTokens((work.keywords ?? []).flatMap((keyword) => tokenize(keyword.display_name ?? "")));
+  if (!keywordTokens.length || !contextTokens.length) {
+    return 0;
+  }
+  const context = new Set(contextTokens);
+  const matches = keywordTokens.filter((token) => context.has(token)).length;
+  return clamp01(matches / keywordTokens.length);
+}
+
+function jaccard(a: string[], b: string[]): number {
+  const left = new Set(a);
+  const right = new Set(b);
+  if (!left.size || !right.size) {
+    return 0;
+  }
+  const intersection = Array.from(left).filter((token) => right.has(token)).length;
+  const union = new Set([...left, ...right]).size;
+  return clamp01(intersection / union);
+}
+
+function uniqueTokens(tokens: string[]): string[] {
+  return Array.from(new Set(tokens));
+}
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
 }
 
 function median(values: number[]): number {

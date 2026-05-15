@@ -186,6 +186,19 @@ function ResearchMap({ result }: { result: ResearchMapResponse }) {
               : "Unavailable; using keyword and citation scoring only."}
           </p>
         </article>
+        <article className="item">
+          <h3>Citation network</h3>
+          <p>
+            Seed papers: {result.citationNetworkSignals.seedPaperCount} | With references: {result.citationNetworkSignals.seedPapersWithReferences}
+          </p>
+          <p>
+            Shared references: {result.citationNetworkSignals.sharedReferenceCount} | Fetched: {result.citationNetworkSignals.fetchedReferenceCount}
+          </p>
+          <p>
+            Request budget: {result.citationNetworkSignals.requestBudgetUsed}/{result.citationNetworkSignals.requestBudgetMax}
+          </p>
+          <p className="smallText">{result.citationNetworkSignals.limitations[0]}</p>
+        </article>
         <article className="item directionSummary">
           <h3>Research Direction Summary</h3>
           <p>{result.researchDirectionSummary.briefSummary}</p>
@@ -220,6 +233,10 @@ function ResearchMap({ result }: { result: ResearchMapResponse }) {
             <p><strong>Why now:</strong> {idea.whyNow}</p>
             <p><strong>MVP:</strong> {idea.mvpVersion}</p>
             <p><strong>Evidence:</strong> {idea.supportingPaperIds.length} papers, {idea.supportingClusterIds.length} clusters</p>
+            <p>
+              <strong>Traceability:</strong> {idea.traceability.supportingReferenceIds.length} shared references | {idea.traceability.evidenceTypes.join(", ")}
+            </p>
+            <p className="smallText">{idea.traceability.evidenceNote}</p>
           </article>
         ))}
       </ResultSection>
@@ -266,6 +283,7 @@ function PaperCard({ paper, showCitationHistory = false }: { paper: ResearchMapR
         {paper.year} | {paper.citationCount} citations | {paper.citationsPerYear.toFixed(1)} citations/year
       </p>
       {showCitationHistory ? <CitationHistory paper={paper} /> : null}
+      {paper.graphSupportNote ? <p className="smallText">{paper.graphSupportNote}</p> : null}
       <p>{paper.authors.map((author) => author.name).join(", ")}</p>
       <a href={paper.url} target="_blank" rel="noreferrer">OpenAlex record</a>
     </article>
@@ -281,8 +299,13 @@ function CitationHistory({ paper }: { paper: ResearchMapResponse["recentInfluenc
 
   return (
     <div className="citationHistory">
+      <p className="smallText">
+        {paper.citationHistorySource === "openalex-counts-by-year"
+          ? "Recent yearly citations from OpenAlex."
+          : "Yearly citing-work counts from OpenAlex grouped fallback."}
+      </p>
       <p className="smallText">{paper.citationHistoryNote}</p>
-      <div className="citationBars" aria-label="Yearly citation history from OpenAlex citing-work publication years">
+      <div className="citationBars" aria-label="Recent yearly citations from OpenAlex">
         {paper.citationHistory.map((item) => (
           <div className="citationBarItem" key={item.year}>
             <div className="citationBarTrack">

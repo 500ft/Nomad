@@ -29,7 +29,10 @@ export type PaperRecommendation = {
   authors: AuthorSummary[];
   citationHistory: CitationYear[] | null;
   citationHistoryStatus: CitationHistoryStatus;
+  citationHistorySource: CitationHistorySource | null;
   citationHistoryNote: string;
+  graphSupportScore: number;
+  graphSupportNote: string | null;
 };
 
 export type CitationYear = {
@@ -40,9 +43,12 @@ export type CitationYear = {
 
 export type CitationHistoryStatus = "available" | "unavailable";
 
+export type CitationHistorySource = "openalex-counts-by-year" | "openalex-cited-by-grouped-fallback";
+
 export type CitationHistoryResult = {
   status: CitationHistoryStatus;
   history: CitationYear[] | null;
+  source: CitationHistorySource | null;
   note: string;
 };
 
@@ -83,6 +89,24 @@ export type ProjectIdea = {
   whyNow: string;
   mvpVersion: string;
   confidence: Confidence;
+  traceability: ProjectTraceability;
+};
+
+export type EvidenceType =
+  | "recent-paper"
+  | "shared-reference"
+  | "cluster-signal"
+  | "citation-history"
+  | "high-normalized-citation"
+  | "author-activity";
+
+export type ProjectTraceability = {
+  supportingPaperIds: string[];
+  supportingClusterIds: string[];
+  supportingReferenceIds: string[];
+  evidenceTypes: EvidenceType[];
+  evidenceNote: string;
+  limitations: string[];
 };
 
 export type EvidenceItem = {
@@ -109,6 +133,32 @@ export type CitationSignals = {
   topClusterByRecentInfluence: string | null;
   recentPaperShare: number;
   confidence: Confidence;
+};
+
+export type SharedReferenceEvidence = {
+  id: string;
+  title: string;
+  publicationYear: number | null;
+  citedByCount: number | null;
+  citationNormalizedPercentile: number | null;
+  fwci: number | null;
+  referencedBySeedPaperIds: string[];
+  referenceFrequency: number;
+  relevanceGatePassed: boolean;
+  evidenceTypes: Array<"shared-reference" | "topic-overlap" | "citation-percentile" | "source-quality">;
+};
+
+export type CitationNetworkSignals = {
+  seedPaperIds: string[];
+  seedPaperCount: number;
+  seedPapersWithReferences: number;
+  fetchedReferenceCount: number;
+  sharedReferenceCount: number;
+  graphCoverageRatio: number;
+  requestBudgetUsed: number;
+  requestBudgetMax: 7;
+  topSharedReferences: SharedReferenceEvidence[];
+  limitations: string[];
 };
 
 export type SummarySignal = {
@@ -145,6 +195,7 @@ export type ResearchMapResponse = {
   people: ResearcherRecommendation[];
   clusters: TopicCluster[];
   citationSignals: CitationSignals;
+  citationNetworkSignals: CitationNetworkSignals;
   researchDirectionSummary: ResearchDirectionSummary;
   semanticSignals: SemanticSignals;
   projectIdeas: ProjectIdea[];
@@ -165,6 +216,8 @@ export type OpenAlexWork = {
   cited_by_count?: number | null;
   citation_normalized_percentile?: {
     value?: number | null;
+    is_in_top_1_percent?: boolean | null;
+    is_in_top_10_percent?: boolean | null;
   } | null;
   authorships?: Array<{
     author?: {
@@ -181,6 +234,16 @@ export type OpenAlexWork = {
   type?: string | null;
   is_retracted?: boolean | null;
   abstract_inverted_index?: Record<string, number[]> | null;
+  counts_by_year?: OpenAlexCountByYear[] | null;
+  referenced_works?: string[] | null;
+  referenced_works_count?: number | null;
+  fwci?: number | null;
+  cited_by_api_url?: string | null;
+};
+
+export type OpenAlexCountByYear = {
+  year?: number | null;
+  cited_by_count?: number | null;
 };
 
 export type OpenAlexTopic = {
@@ -196,7 +259,7 @@ export type NormalizedWork = {
   year: number;
   publicationDate: string | null;
   citationCount: number;
-  citationPercentile: number | null;
+  citationPercentileValue: number | null;
   authors: AuthorSummary[];
   primaryTopic: OpenAlexTopic | null;
   topics: OpenAlexTopic[];
@@ -206,6 +269,11 @@ export type NormalizedWork = {
   type: string | null;
   isRetracted: boolean;
   hasAbstract: boolean;
+  countsByYear: OpenAlexCountByYear[];
+  referencedWorks: string[];
+  referencedWorksCount: number | null;
+  fwci: number | null;
+  citedByApiUrl: string | null;
   url: string;
   relevanceScore: number;
   keywordRelevanceScore: number;
@@ -217,6 +285,9 @@ export type NormalizedWork = {
   citationsPerYearScore: number;
   recencyScore: number;
   sourceQualityScore: number;
+  graphSupportScore: number;
+  graphSupportSeedCount: number;
+  graphSupportSeedTotal: number;
   foundationalScore: number;
   recentInfluenceScore: number;
   citationsPerYear: number;

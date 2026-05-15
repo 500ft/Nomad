@@ -1,15 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCitationHistoryResult, buildOpenAlexCitationHistoryUrl, buildOpenAlexWorksUrl, normalizeOpenAlexWorkId } from "./openalex";
+import {
+  buildCitationHistoryFromCountsByYear,
+  buildCitationHistoryResult,
+  buildOpenAlexCitationHistoryUrl,
+  buildOpenAlexWorksByIdsUrl,
+  buildOpenAlexWorksUrl,
+  normalizeOpenAlexWorkId
+} from "./openalex";
 import { blendRelevance, cosineSimilarity } from "./embeddings";
 import {
   buildCompactText,
   buildResearchDirectionSummary,
   buildResearchMap,
+  calculateGraphSupportScore,
   calculateDirectionMomentumScore,
   computeMapConfidence,
   getLowerActivityConfidence,
   normalizeWorks,
+  passesSharedReferenceRelevanceGate,
   reconstructAbstract,
   scoreWorks
 } from "./scoring";
@@ -66,6 +75,7 @@ async function unavailableCitationHistory(workIds: string[]): Promise<Map<string
       {
         status: "unavailable",
         history: null,
+        source: null,
         note: "Citation history unavailable. Showing citations/year proxy instead."
       }
     ])
@@ -91,6 +101,13 @@ describe("OpenAlex query construction", () => {
     const url = buildOpenAlexCitationHistoryUrl("https://openalex.org/W123");
     expect(url).toContain("filter=cites%3AW123");
     expect(url).toContain("group_by=publication_year");
+  });
+
+  it("builds chunkable OpenAlex ID filter URLs for shared references", () => {
+    const url = buildOpenAlexWorksByIdsUrl(["https://openalex.org/W123", "W456"]);
+
+    expect(url).toContain("ids.openalex%3AW123%7CW456");
+    expect(url).toContain("select=");
   });
 });
 
@@ -131,6 +148,21 @@ describe("normalization and scoring", () => {
     expect(computeMapConfidence(75, 0.55)).toBe("strong");
     expect(computeMapConfidence(25, 0.2)).toBe("moderate");
     expect(computeMapConfidence(24, 0.9)).toBe("sparse");
+  });
+
+  it("maps citation_normalized_percentile through the value field only", () => {
+    const normalized = normalizeWorks(request, [
+      work("W-percentile", {
+        citation_normalized_percentile: {
+          value: 0.91,
+          is_in_top_1_percent: false,
+          is_in_top_10_percent: true
+        }
+      })
+    ]).works[0];
+
+    expect(normalized.citationPercentileValue).toBe(0.91);
+    expect(scoreWorks(request, [normalized])[0].citationPercentileScore).toBe(0.91);
   });
 });
 
@@ -175,6 +207,9 @@ describe("research map output", () => {
     expect(map.projectIdeas[0].supportingPaperIds.length).toBeGreaterThan(0);
     expect(map.projectIdeas[0].supportingClusterIds.length).toBeGreaterThan(0);
     expect(map.projectIdeas[0].reasonCodes.length).toBeGreaterThan(0);
+    expect(map.projectIdeas[0].traceability.supportingPaperIds.length).toBeGreaterThan(0);
+    expect(map.projectIdeas[0].traceability.limitations.length).toBeGreaterThan(0);
+    expect(map.citationNetworkSignals.requestBudgetUsed).toBeLessThanOrEqual(7);
     expect(map.people[0].id).toContain("https://openalex.org/A");
     expect(map.recentInfluencePapers[0].citationHistoryStatus).toBe("unavailable");
     expect(map.recentInfluencePapers[0].citationHistoryNote).toContain("citations/year proxy");
@@ -259,6 +294,85 @@ describe("citation history", () => {
     expect(result.status).toBe("unavailable");
     expect(result.history).toBeNull();
     expect(result.note).toContain("citations/year proxy");
+  });
+
+  it("zero-fills missing counts_by_year values inside the recent OpenAlex window", () => {
+    const currentYear = new Date().getFullYear();
+    const result = buildCitationHistoryFromCountsByYear([
+      { year: currentYear - 2, cited_by_count: 8 },
+      { year: currentYear, cited_by_count: 3 }
+    ]);
+
+    expect(result.status).toBe("available");
+    expect(result.source).toBe("openalex-counts-by-year");
+    expect(result.history).toHaveLength(10);
+    expect(result.history?.find((item) => item.year === currentYear - 1)?.citationCount).toBe(0);
+    expect(result.history?.find((item) => item.year === currentYear)?.isPartialYear).toBe(true);
+    expect(result.note).toContain("Recent yearly citations from OpenAlex");
+  });
+});
+
+describe("citation graph", () => {
+  it("caps graph support on the 0-1 score scale", () => {
+    expect(
+      calculateGraphSupportScore({
+        sharedReferenceHit: true,
+        seedReferenceFrequencyNormalized: 1,
+        topicOverlapHit: true,
+        citationPercentileHit: true
+      })
+    ).toBeLessThanOrEqual(0.05);
+  });
+
+  it("uses deterministic relevance gate thresholds", () => {
+    expect(
+      passesSharedReferenceRelevanceGate({
+        titleOverlapScore: 0.24,
+        topicOverlapScore: 0.33,
+        keywordOverlapScore: 0.24,
+        citationPercentileValue: 0.84,
+        embeddingSimilarityScore: 0.69
+      })
+    ).toBe(false);
+    expect(
+      passesSharedReferenceRelevanceGate({
+        titleOverlapScore: 0.25,
+        topicOverlapScore: 0,
+        keywordOverlapScore: 0,
+        citationPercentileValue: null
+      })
+    ).toBe(true);
+    expect(
+      passesSharedReferenceRelevanceGate({
+        titleOverlapScore: 0,
+        topicOverlapScore: 0,
+        keywordOverlapScore: 0,
+        citationPercentileValue: null,
+        embeddingSimilarityScore: 0.7
+      })
+    ).toBe(true);
+  });
+
+  it("does not treat one-off references as shared graph evidence", async () => {
+    const works = Array.from({ length: 35 }, (_, index) =>
+      work(`W-graph-${index}`, {
+        display_name: `Machine learning HVAC CFD graph paper ${index}`,
+        cited_by_count: 20 + index,
+        publication_year: 2021 + (index % 5),
+        referenced_works: [`https://openalex.org/W-unique-${index}`]
+      })
+    );
+
+    const map = await buildResearchMap(request, works, unavailableCitationHistory, async () => [
+      work("W-unique-reference", {
+        display_name: "Generic unique reference",
+        cited_by_count: 999,
+        publication_year: 2018
+      })
+    ]);
+
+    expect(map.citationNetworkSignals.sharedReferenceCount).toBe(0);
+    expect(map.citationNetworkSignals.topSharedReferences).toHaveLength(0);
   });
 });
 
