@@ -12,6 +12,7 @@ import { visibleCitationHistory } from "./citation-history-view";
 import { blendRelevance, cosineSimilarity } from "./embeddings";
 import {
   buildCompactText,
+  buildQueryFocus,
   buildResearchDirectionSummary,
   buildResearchMap,
   calculateGraphSupportScore,
@@ -23,7 +24,7 @@ import {
   reconstructAbstract,
   scoreWorks
 } from "./scoring";
-import type { CitationHistoryResult, OpenAlexWork, ResearchMapRequest, TopicCluster } from "./types";
+import type { CitationHistoryResult, NormalizedWork, OpenAlexWork, ResearchMapRequest, TopicCluster } from "./types";
 
 const request: ResearchMapRequest = {
   topic: "machine learning for HVAC CFD",
@@ -200,6 +201,7 @@ describe("research map output", () => {
     expect(map.citationSignals.totalUsableWorks).toBeGreaterThan(0);
     expect(map.citationSignals.topClusterByPaperCount).toBeTruthy();
     expect(map.researchDirectionSummary.briefSummary).toContain("result set");
+    expect(map.queryFocus.reason.toLowerCase()).toContain("median relevance");
     expect(map.semanticSignals.enabled).toBe(false);
     expect(map.warnings).toContain("Semantic ranking unavailable; using keyword and citation scoring only.");
     expect(map.projectIdeas.length).toBeGreaterThan(0);
@@ -265,6 +267,69 @@ describe("research map output", () => {
     expect(map.citationSignals.totalUsableWorks).toBe(33);
     expect(map.clusters.map((cluster) => cluster.label)).toContain("HVAC airflow modeling");
     expect(map.projectIdeas.every((idea) => idea.supportingPaperIds.length > 0)).toBe(true);
+  });
+});
+
+describe("query focus", () => {
+  it("classifies sparse result sets before other focus signals", () => {
+    const focus = buildQueryFocus(request, scoredWorks(12, 0.9), [
+      cluster("dominant", "Dominant cluster", 12, 0.9, 0.9, 0.9)
+    ]);
+
+    expect(focus.label).toBe("sparse");
+    expect(focus.reason).toContain("Only 12 usable works");
+  });
+
+  it("classifies focused result sets with relevance, concentration, and low weak-cluster share", () => {
+    const focus = buildQueryFocus(request, scoredWorks(40, 0.7), [
+      cluster("main", "Main cluster", 16, 0.8, 0.8, 0.75),
+      cluster("side", "Side cluster", 10, 0.7, 0.7, 0.72)
+    ]);
+
+    expect(focus.label).toBe("focused");
+    expect(focus.reason).toContain("0.70");
+  });
+
+  it("classifies broad result sets from low median relevance", () => {
+    const focus = buildQueryFocus(request, scoredWorks(40, 0.38), [
+      cluster("main", "Main cluster", 20, 0.8, 0.8, 0.5)
+    ]);
+
+    expect(focus.label).toBe("broad");
+    expect(focus.reason).toContain("median relevance is 0.38");
+  });
+
+  it("classifies broad result sets from weak cluster share or many clusters", () => {
+    const weakShareFocus = buildQueryFocus(request, scoredWorks(40, 0.52), [
+      cluster("weak-1", "Weak one", 1, 0.2, 0.2, 0.3),
+      cluster("weak-2", "Weak two", 1, 0.2, 0.2, 0.3),
+      cluster("strong", "Strong", 20, 0.8, 0.8, 0.7)
+    ]);
+    const manyClusterFocus = buildQueryFocus(
+      request,
+      scoredWorks(40, 0.52),
+      Array.from({ length: 12 }, (_, index) => cluster(`cluster-${index}`, `Cluster ${index}`, 3, 0.5, 0.5, 0.5))
+    );
+
+    expect(weakShareFocus.label).toBe("broad");
+    expect(manyClusterFocus.label).toBe("broad");
+  });
+
+  it("returns deterministic suggestions without an LLM", () => {
+    expect(buildQueryFocus({ ...request, topic: "robotics" }, scoredWorks(40, 0.52), []).suggestions).toContain("robotics for soft gripper design");
+    expect(buildQueryFocus({ ...request, topic: "battery thermal management" }, scoredWorks(40, 0.52), []).suggestions).toContain(
+      "battery thermal management cooling design"
+    );
+  });
+
+  it("adds focus limitations to broad and sparse project ideas", async () => {
+    const broadMap = await buildResearchMap(request, scoredFixtureWorks(35, 0.2), unavailableCitationHistory);
+    const sparseMap = await buildResearchMap(request, scoredFixtureWorks(10, 0.9), unavailableCitationHistory);
+
+    expect(broadMap.queryFocus.label).toBe("broad");
+    expect(broadMap.projectIdeas[0].traceability.limitations).toContain("The source query was broad, so this idea should be treated as exploratory.");
+    expect(sparseMap.queryFocus.label).toBe("sparse");
+    expect(sparseMap.projectIdeas[0].traceability.limitations).toContain("Few usable works were found, so supporting evidence is limited.");
   });
 });
 
@@ -470,4 +535,63 @@ function cluster(
     averageRelevanceScore,
     paperIds: Array.from({ length: paperCount }, (_, index) => `${id}-paper-${index}`)
   };
+}
+
+function scoredWorks(count: number, relevance: number): NormalizedWork[] {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `work-${index}`,
+    doi: null,
+    title: `Scored work ${index}`,
+    normalizedTitle: `scored work ${index}`,
+    year: 2024,
+    publicationDate: "2024-01-01",
+    citationCount: 10,
+    citationPercentileValue: 0.5,
+    authors: [],
+    primaryTopic: null,
+    topics: [],
+    keywords: [],
+    abstractText: null,
+    compactText: `Scored work ${index}`,
+    type: "article",
+    isRetracted: false,
+    hasAbstract: false,
+    countsByYear: [],
+    referencedWorks: [],
+    referencedWorksCount: null,
+    fwci: null,
+    citedByApiUrl: null,
+    url: `work-${index}`,
+    relevanceScore: relevance,
+    keywordRelevanceScore: relevance,
+    semanticRelevanceScore: null,
+    finalRelevanceScore: relevance,
+    embeddingModel: null,
+    logCitationScore: 0.5,
+    citationPercentileScore: 0.5,
+    citationsPerYearScore: 0.5,
+    recencyScore: 0.5,
+    sourceQualityScore: 1,
+    graphSupportScore: 0,
+    graphSupportSeedCount: 0,
+    graphSupportSeedTotal: 0,
+    foundationalScore: relevance,
+    recentInfluenceScore: relevance,
+    citationsPerYear: 5
+  }));
+}
+
+function scoredFixtureWorks(count: number, relevance: number): OpenAlexWork[] {
+  return Array.from({ length: count }, (_, index) =>
+    work(`W-focus-${index}`, {
+      display_name: `Focus test paper ${index}`,
+      relevance_score: relevance * 100,
+      publication_year: 2021 + (index % 5),
+      cited_by_count: 10 + index,
+      primary_topic: {
+        id: index % 2 ? "https://openalex.org/T-focus-a" : "https://openalex.org/T-focus-b",
+        display_name: index % 2 ? "Focused HVAC CFD" : "Focused surrogate modeling"
+      }
+    })
+  );
 }

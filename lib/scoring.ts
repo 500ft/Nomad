@@ -11,6 +11,7 @@ import type {
   OpenAlexWork,
   PaperRecommendation,
   ProjectIdea,
+  QueryFocus,
   ResearchMapRequest,
   ResearchMapResponse,
   ResearchDirectionSummary,
@@ -102,10 +103,11 @@ export async function buildResearchMap(
   );
   const recentInfluencePapers = await enrichWithCitationHistory(recentInfluencePapersWithoutHistory, requestBudget, citationHistoryFetcher);
   const people = buildPeople(scored, recentInfluencePapers.map((paper) => paper.id));
-  const projectIdeas = buildProjectIdeas(normalizedRequest, clusters, scored, citationNetworkSignals);
+  const queryFocus = buildQueryFocus(normalizedRequest, scored, clusters);
+  const projectIdeas = buildProjectIdeas(normalizedRequest, clusters, scored, citationNetworkSignals, queryFocus);
   const confidence = computeMapConfidence(scored.length, median(scored.map((work) => work.relevanceScore)));
   const dataQuality = buildDataQuality(works, normalized.works, normalized.dedupedCount, normalized.excludedRetractedCount);
-  const warnings = buildWarnings(dataQuality, confidence, median(scored.map((work) => work.relevanceScore)), semantic.signals.enabled);
+  const warnings = buildWarnings(dataQuality, confidence, semantic.signals.enabled);
   if (recentInfluencePapers.length && recentInfluencePapers.every((paper) => paper.citationHistoryStatus === "unavailable")) {
     warnings.push("Citation history unavailable; using citations/year proxy for Watch Now.");
   }
@@ -123,6 +125,7 @@ export async function buildResearchMap(
     recentInfluencePapers,
     people,
     clusters: clusters.slice(0, CLUSTER_LIMIT),
+    queryFocus,
     citationSignals,
     citationNetworkSignals: {
       ...citationNetworkSignals,
@@ -373,7 +376,8 @@ export function buildProjectIdeas(
   request: ResearchMapRequest,
   clusters: TopicCluster[],
   works: NormalizedWork[],
-  citationNetworkSignals: CitationNetworkSignals
+  citationNetworkSignals: CitationNetworkSignals,
+  queryFocus: QueryFocus
 ): ProjectIdea[] {
   return clusters.slice(0, 5).map((cluster) => {
     const supportingWorks = cluster.paperIds
@@ -394,8 +398,9 @@ export function buildProjectIdeas(
     if (supportingReferenceIds.length) {
       evidenceTypes.push("shared-reference");
     }
-    const confidence = computeProjectConfidence(supportingWorks.length, [cluster.id]);
+    const confidence = queryFocus.label === "sparse" ? "sparse" : computeProjectConfidence(supportingWorks.length, [cluster.id]);
     const difficulty = request.experienceLevel === "beginner" ? "beginner" : request.experienceLevel === "technical" ? "advanced" : "intermediate";
+    const focusLimitations = queryFocusLimitations(queryFocus);
     return {
       title: `Build a focused ${cluster.label.toLowerCase()} research map`,
       description: `Create a small project that compares methods, datasets, or evaluation gaps in ${cluster.label.toLowerCase()} using the strongest recent papers as evidence.`,
@@ -417,11 +422,100 @@ export function buildProjectIdeas(
           : `This possible direction is tied to ${supportingWorks.length} papers and the ${cluster.label} cluster; no shared reference evidence passed the graph gates.`,
         limitations: [
           "Traceability shows supporting evidence in this OpenAlex result set, not proof of novelty.",
-          "Shared references are supporting context only and may include methods or review papers."
+          "Shared references are supporting context only and may include methods or review papers.",
+          ...focusLimitations
         ]
       }
     };
   });
+}
+
+export function buildQueryFocus(request: ResearchMapRequest, works: NormalizedWork[], clusters: TopicCluster[]): QueryFocus {
+  const usableWorks = works.length;
+  const medianRelevance = Number(median(works.map((work) => work.relevanceScore)).toFixed(2));
+  const clusterCount = clusters.length;
+  const weakClusterCount = clusters.filter((cluster) => cluster.paperCount <= 2 || cluster.averageRelevanceScore < 0.45).length;
+  const weakClusterShare = Number((clusterCount ? weakClusterCount / clusterCount : 0).toFixed(2));
+  const topClusterShare = Number((usableWorks ? Math.max(0, ...clusters.map((cluster) => cluster.paperCount)) / usableWorks : 0).toFixed(2));
+  const label = classifyQueryFocus({ usableWorks, medianRelevance, clusterCount, weakClusterShare, topClusterShare });
+
+  return {
+    label,
+    medianRelevance,
+    clusterCount,
+    weakClusterCount,
+    weakClusterShare,
+    topClusterShare,
+    usableWorks,
+    reason: buildQueryFocusReason(label, {
+      usableWorks,
+      medianRelevance,
+      clusterCount,
+      weakClusterCount,
+      weakClusterShare,
+      topClusterShare
+    }),
+    suggestions: buildQueryFocusSuggestions(request.topic)
+  };
+}
+
+function classifyQueryFocus(input: {
+  usableWorks: number;
+  medianRelevance: number;
+  clusterCount: number;
+  weakClusterShare: number;
+  topClusterShare: number;
+}): QueryFocus["label"] {
+  if (input.usableWorks < 25) {
+    return "sparse";
+  }
+  if (input.medianRelevance >= 0.6 && input.topClusterShare >= 0.3 && input.weakClusterShare < 0.5) {
+    return "focused";
+  }
+  if (input.medianRelevance < 0.45 || input.weakClusterShare >= 0.6 || input.clusterCount >= 12) {
+    return "broad";
+  }
+  return "moderate";
+}
+
+function buildQueryFocusReason(
+  label: QueryFocus["label"],
+  metrics: Pick<QueryFocus, "usableWorks" | "medianRelevance" | "clusterCount" | "weakClusterCount" | "weakClusterShare" | "topClusterShare">
+): string {
+  if (label === "sparse") {
+    return `Only ${metrics.usableWorks} usable works were found, so citation and cluster signals may be unstable.`;
+  }
+  if (label === "focused") {
+    return `Median relevance is ${metrics.medianRelevance.toFixed(2)} and the top cluster contains ${(metrics.topClusterShare * 100).toFixed(0)}% of usable works.`;
+  }
+  if (label === "broad") {
+    return `Results split across ${metrics.clusterCount} clusters, ${metrics.weakClusterCount} appear weak, and median relevance is ${metrics.medianRelevance.toFixed(2)}.`;
+  }
+  return `Median relevance is ${metrics.medianRelevance.toFixed(2)} and results form several usable clusters.`;
+}
+
+function buildQueryFocusSuggestions(topic: string): string[] {
+  const normalized = normalizeTitle(topic);
+  if (normalized.includes("robot")) {
+    return [`${topic} for soft gripper design`, `${topic} with force control`, `${topic} for navigation error reduction`];
+  }
+  if (normalized.includes("hvac") || normalized.includes("cfd") || normalized.includes("airflow")) {
+    return [`${topic} airflow prediction`, `${topic} pressure drop prediction`, `${topic} thermal comfort optimization`];
+  }
+  if (normalized.includes("battery") || normalized.includes("thermal")) {
+    return [`${topic} cooling design`, `${topic} temperature uniformity`, `${topic} heat generation modeling`];
+  }
+  return [`${topic} for a specific application`, `${topic} with a measurable outcome`, `${topic} using a specific method`];
+}
+
+function queryFocusLimitations(queryFocus: QueryFocus): string[] {
+  if (queryFocus.label === "broad") {
+    return ["The source query was broad, so this idea should be treated as exploratory."];
+  }
+  if (queryFocus.label === "sparse") {
+    return ["Few usable works were found, so supporting evidence is limited."];
+  }
+  return [];
 }
 
 export function computeMapConfidence(usablePapers: number, medianRelevance: number): Confidence {
@@ -655,7 +749,7 @@ function buildDataQuality(
   };
 }
 
-function buildWarnings(dataQuality: DataQuality, confidence: Confidence, medianRelevance: number, semanticEnabled: boolean): string[] {
+function buildWarnings(dataQuality: DataQuality, confidence: Confidence, semanticEnabled: boolean): string[] {
   const warnings: string[] = [];
   if (!semanticEnabled) {
     warnings.push("Semantic ranking unavailable; using keyword and citation scoring only.");
@@ -671,9 +765,6 @@ function buildWarnings(dataQuality: DataQuality, confidence: Confidence, medianR
   }
   if (dataQuality.usableWorks > 0 && dataQuality.worksWithAbstract / dataQuality.usableWorks < 0.4) {
     warnings.push("Many works lack abstracts, so clustering relies more heavily on titles, topics, and keywords.");
-  }
-  if (medianRelevance < 0.45) {
-    warnings.push("Low median relevance: review the topic wording before relying on the map.");
   }
   return warnings;
 }

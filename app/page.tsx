@@ -49,6 +49,12 @@ export default function Home() {
           <p className="lede">
             Enter an engineering topic. Nomad returns what to read first, what has recent influence, who is active, what subtopics matter, and what project ideas are worth exploring.
           </p>
+          <div className="focusGuide">
+            <h3>Better topics make better maps.</h3>
+            <p>A cluster is a group of papers that appear to share a topic, method, keyword, or OpenAlex topic label.</p>
+            <p>Median relevance is the middle relevance score across usable papers. Higher usually means returned papers are closer to your topic. Lower usually means the map is broader or noisier.</p>
+            <p>For stronger results, include a method, application, system, or measurable outcome.</p>
+          </div>
         </div>
         <form className="searchPanel" onSubmit={onSubmit}>
           <label>
@@ -126,6 +132,28 @@ function ResearchMap({ result }: { result: ResearchMapResponse }) {
           ))}
         </div>
       ) : null}
+
+      <div className="queryFocusCard">
+        <div>
+          <p className="eyebrow">Query Focus</p>
+          <h3>{result.queryFocus.label}</h3>
+          <p>{result.queryFocus.reason}</p>
+        </div>
+        <div className="focusMetrics">
+          <span>median relevance {result.queryFocus.medianRelevance.toFixed(2)}</span>
+          <span>{result.queryFocus.clusterCount} clusters</span>
+          <span>{result.queryFocus.weakClusterCount} weak clusters</span>
+          <span>{(result.queryFocus.topClusterShare * 100).toFixed(0)}% top cluster share</span>
+        </div>
+        <div>
+          <h4>Try a sharper query</h4>
+          <ul>
+            {result.queryFocus.suggestions.map((suggestion) => (
+              <li key={suggestion}>{suggestion}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
       <ResultSection title="Start Here" subtitle="Foundational papers ranked by normalized citation signal, relevance, and source quality.">
         {result.foundationalPapers.map((paper) => <PaperCard key={paper.id} paper={paper} />)}

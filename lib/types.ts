@@ -161,6 +161,20 @@ export type CitationNetworkSignals = {
   limitations: string[];
 };
 
+export type QueryFocusLabel = "focused" | "moderate" | "broad" | "sparse";
+
+export type QueryFocus = {
+  label: QueryFocusLabel;
+  medianRelevance: number;
+  clusterCount: number;
+  weakClusterCount: number;
+  weakClusterShare: number;
+  topClusterShare: number;
+  usableWorks: number;
+  reason: string;
+  suggestions: string[];
+};
+
 export type SummarySignal = {
   label: string;
   reason: string;
@@ -194,6 +208,7 @@ export type ResearchMapResponse = {
   recentInfluencePapers: PaperRecommendation[];
   people: ResearcherRecommendation[];
   clusters: TopicCluster[];
+  queryFocus: QueryFocus;
   citationSignals: CitationSignals;
   citationNetworkSignals: CitationNetworkSignals;
   researchDirectionSummary: ResearchDirectionSummary;
