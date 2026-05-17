@@ -316,10 +316,16 @@ describe("query focus", () => {
   });
 
   it("returns deterministic suggestions without an LLM", () => {
-    expect(buildQueryFocus({ ...request, topic: "robotics" }, scoredWorks(40, 0.52), []).suggestions).toContain("robotics for soft gripper design");
-    expect(buildQueryFocus({ ...request, topic: "battery thermal management" }, scoredWorks(40, 0.52), []).suggestions).toContain(
-      "battery thermal management cooling design"
-    );
+    expect(buildQueryFocus({ ...request, topic: "robotics" }, scoredWorks(40, 0.52), []).suggestions).toEqual([
+      "robotics force control for gripper design",
+      "robotics actuator design for compliant manipulation",
+      "soft robotics grippers for delicate object manipulation"
+    ]);
+    expect(buildQueryFocus({ ...request, topic: "battery thermal management" }, scoredWorks(40, 0.52), []).suggestions).toEqual([
+      "temperature uniformity prediction for battery packs",
+      "battery thermal management cooling plate optimization",
+      "heat generation modeling for lithium ion battery cells"
+    ]);
   });
 
   it("adds focus limitations to broad and sparse project ideas", async () => {

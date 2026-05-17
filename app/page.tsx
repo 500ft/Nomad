@@ -146,7 +146,8 @@ function ResearchMap({ result }: { result: ResearchMapResponse }) {
           <span>{(result.queryFocus.topClusterShare * 100).toFixed(0)}% top cluster share</span>
         </div>
         <div>
-          <h4>Try a sharper query</h4>
+          <h4>Try a more specific query</h4>
+          <p>These suggestions add one missing constraint: method, application, system, or measurable outcome.</p>
           <ul>
             {result.queryFocus.suggestions.map((suggestion) => (
               <li key={suggestion}>{suggestion}</li>

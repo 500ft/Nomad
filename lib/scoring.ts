@@ -22,6 +22,7 @@ import type {
 } from "./types";
 import { applySemanticRelevance, blendRelevance, buildQueryText } from "./embeddings";
 import { buildCitationHistoryFromCountsByYear, fetchCitationHistoryForWorks, fetchOpenAlexWorksByIds, normalizeOpenAlexWorkId } from "./openalex";
+import { buildQueryFocusSuggestions } from "./query-focus";
 
 const FOUNDATIONAL_LIMIT = 5;
 const WATCH_NOW_LIMIT = 5;
@@ -492,20 +493,6 @@ function buildQueryFocusReason(
     return `Results split across ${metrics.clusterCount} clusters, ${metrics.weakClusterCount} appear weak, and median relevance is ${metrics.medianRelevance.toFixed(2)}.`;
   }
   return `Median relevance is ${metrics.medianRelevance.toFixed(2)} and results form several usable clusters.`;
-}
-
-function buildQueryFocusSuggestions(topic: string): string[] {
-  const normalized = normalizeTitle(topic);
-  if (normalized.includes("robot")) {
-    return [`${topic} for soft gripper design`, `${topic} with force control`, `${topic} for navigation error reduction`];
-  }
-  if (normalized.includes("hvac") || normalized.includes("cfd") || normalized.includes("airflow")) {
-    return [`${topic} airflow prediction`, `${topic} pressure drop prediction`, `${topic} thermal comfort optimization`];
-  }
-  if (normalized.includes("battery") || normalized.includes("thermal")) {
-    return [`${topic} cooling design`, `${topic} temperature uniformity`, `${topic} heat generation modeling`];
-  }
-  return [`${topic} for a specific application`, `${topic} with a measurable outcome`, `${topic} using a specific method`];
 }
 
 function queryFocusLimitations(queryFocus: QueryFocus): string[] {
