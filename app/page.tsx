@@ -252,21 +252,25 @@ function ResearchMap({ result }: { result: ResearchMapResponse }) {
         </article>
       </ResultSection>
 
-      <ResultSection title="Project Ideas" subtitle="Possible project ideas generated only from supporting papers and clusters.">
+      <ResultSection title="Project Ideas" subtitle="Niche, evidence-backed project directions generated from supporting papers and clusters.">
         {result.projectIdeas.map((idea) => (
           <article className="item" key={idea.title}>
             <div className="itemHeader">
               <h3>{idea.title}</h3>
               <span>{idea.confidence}</span>
             </div>
+            <p className="smallText">
+              {[idea.projectType, ...(idea.distinctivenessSignals ?? []).slice(0, 3)].filter(Boolean).join(" | ")}
+            </p>
             <p>{idea.description}</p>
             <p><strong>Why now:</strong> {idea.whyNow}</p>
-            <p><strong>MVP:</strong> {idea.mvpVersion}</p>
+            <p><strong>First experiment:</strong> {idea.firstExperiment ?? idea.mvpVersion}</p>
             <p><strong>Evidence:</strong> {idea.supportingPaperIds.length} papers, {idea.supportingClusterIds.length} clusters</p>
             <p>
               <strong>Traceability:</strong> {idea.traceability.supportingReferenceIds.length} shared references | {idea.traceability.evidenceTypes.join(", ")}
             </p>
             <p className="smallText">{idea.traceability.evidenceNote}</p>
+            <p className="smallText">{idea.traceability.limitations[0]}</p>
           </article>
         ))}
       </ResultSection>

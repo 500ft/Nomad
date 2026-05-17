@@ -58,6 +58,7 @@ export function ReadingRoadmap({ map }: { map: ResearchMapResponse }) {
               {phase.projects.map((idea) => (
                 <article key={idea.title} className={styles.projectCard}>
                   <div className={styles.paperBadges}>
+                    {idea.projectType ? <span className={styles.paperBadge}>{idea.projectType}</span> : null}
                     <span className={styles.paperBadge}>{idea.difficulty}</span>
                     <span className={styles.paperBadgeMuted}>{idea.confidence} confidence</span>
                   </div>
@@ -67,7 +68,15 @@ export function ReadingRoadmap({ map }: { map: ResearchMapResponse }) {
                     <strong>Why now:</strong> {idea.whyNow}
                   </p>
                   <p className={styles.projectMeta}>
-                    <strong>MVP:</strong> {idea.mvpVersion}
+                    <strong>First experiment:</strong> {idea.firstExperiment ?? idea.mvpVersion}
+                  </p>
+                  {idea.distinctivenessSignals?.length ? (
+                    <p className={styles.projectMeta}>
+                      <strong>Signals:</strong> {idea.distinctivenessSignals.slice(0, 3).join(" • ")}
+                    </p>
+                  ) : null}
+                  <p className={styles.projectMeta}>
+                    <strong>Why grounded:</strong> {idea.traceability.evidenceNote}
                   </p>
                   <p className={styles.projectMeta}>
                     <strong>Background:</strong> {idea.requiredBackground.join(" • ")}

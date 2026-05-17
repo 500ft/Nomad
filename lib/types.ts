@@ -90,6 +90,30 @@ export type ProjectIdea = {
   mvpVersion: string;
   confidence: Confidence;
   traceability: ProjectTraceability;
+  distinctivenessScore?: number;
+  specificityScore?: number;
+  evidenceScore?: number;
+  executionFitScore?: number;
+  traceabilityScore?: number;
+  firstExperiment?: string;
+  projectType?:
+    | "replication"
+    | "benchmark"
+    | "design-optimization"
+    | "modeling"
+    | "experimental-test"
+    | "dataset-analysis"
+    | "prototype-design"
+    | "review-map";
+  distinctivenessSignals?: string[];
+  projectIngredients?: {
+    methods: string[];
+    systems: string[];
+    applications: string[];
+    outcomes: string[];
+    materialsOrDatasets: string[];
+    limitationSignals: string[];
+  };
 };
 
 export type EvidenceType =

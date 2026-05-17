@@ -35,6 +35,11 @@ const SHARED_REFERENCE_MIN_FREQUENCY = 2;
 const SHARED_REFERENCE_FETCH_LIMIT = 20;
 const OPENALEX_ID_CHUNK_SIZE = 20;
 const GRAPH_BOOST_CAP = 0.05;
+const MAX_PROJECT_IDEAS = 5;
+const MAX_PROJECT_TITLE_WORDS = 14;
+const MIN_FIRST_EXPERIMENT_WORDS = 10;
+const ACTION_VERBS = ["generate", "compare", "build", "test", "measure", "simulate", "train", "benchmark", "optimize", "analyze"];
+const GENERIC_PROJECT_BRIDGES = new Set(["analysis", "application", "approach", "design", "engineering", "method", "model", "modeling", "optimization", "performance", "study", "system"]);
 
 const STOP_WORDS = new Set([
   "a",
@@ -380,55 +385,655 @@ export function buildProjectIdeas(
   citationNetworkSignals: CitationNetworkSignals,
   queryFocus: QueryFocus
 ): ProjectIdea[] {
-  return clusters.slice(0, 5).map((cluster) => {
-    const supportingWorks = cluster.paperIds
-      .map((paperId) => works.find((work) => work.id === paperId))
-      .filter((work): work is NormalizedWork => Boolean(work))
-      .slice(0, 6);
-    const supportingReferenceIds = citationNetworkSignals.topSharedReferences
-      .filter((reference) => reference.relevanceGatePassed)
-      .slice(0, 3)
-      .map((reference) => reference.id);
-    const evidenceTypes: EvidenceType[] = ["cluster-signal"];
-    if (supportingWorks.some((work) => new Date().getFullYear() - work.year <= 5)) {
-      evidenceTypes.push("recent-paper");
-    }
-    if (supportingWorks.some((work) => work.citationPercentileScore >= 0.85)) {
-      evidenceTypes.push("high-normalized-citation");
-    }
-    if (supportingReferenceIds.length) {
-      evidenceTypes.push("shared-reference");
-    }
-    const confidence = queryFocus.label === "sparse" ? "sparse" : computeProjectConfidence(supportingWorks.length, [cluster.id]);
-    const difficulty = request.experienceLevel === "beginner" ? "beginner" : request.experienceLevel === "technical" ? "advanced" : "intermediate";
-    const focusLimitations = queryFocusLimitations(queryFocus);
+  const clusterCandidates = clusters.slice(0, 8).flatMap((cluster) => {
+    const supportingWorks = supportingWorksForCluster(cluster, works);
+    const ingredients = extractProjectIngredients(cluster, supportingWorks, request);
+    return generateProjectCandidates({
+      request,
+      clusters: [cluster],
+      supportingWorks,
+      ingredients,
+      citationNetworkSignals,
+      queryFocus,
+      bridgeSignal: null
+    });
+  });
+
+  const crossClusterCandidates = generateCrossClusterProjectCandidates(request, clusters, works, citationNetworkSignals, queryFocus);
+  const filtered = filterProjectCandidates([...clusterCandidates, ...crossClusterCandidates]);
+  const scored = scoreProjectCandidates(filtered, works);
+
+  return dedupeAndTakeTopProjectIdeas(scored, MAX_PROJECT_IDEAS);
+}
+
+type ProjectIngredients = NonNullable<ProjectIdea["projectIngredients"]>;
+
+type ProjectVocabularyCategory = keyof ProjectIngredients;
+
+type ProjectVocabularyEntry = {
+  label: string;
+  terms: string[];
+};
+
+type ProjectCandidate = {
+  title: string;
+  description: string;
+  firstExperiment: string;
+  projectType: NonNullable<ProjectIdea["projectType"]>;
+  ingredients: ProjectIngredients;
+  clusters: TopicCluster[];
+  supportingWorks: NormalizedWork[];
+  supportingReferenceIds: string[];
+  evidenceTypes: EvidenceType[];
+  bridgeSignal: string | null;
+  queryFocus: QueryFocus;
+  difficulty: ProjectIdea["difficulty"];
+  order: number;
+};
+
+type ScoredProjectCandidate = ProjectCandidate & {
+  score: number;
+  distinctivenessScore: number;
+  specificityScore: number;
+  evidenceScore: number;
+  executionFitScore: number;
+  traceabilityScore: number;
+  confidence: Confidence;
+  distinctivenessSignals: string[];
+};
+
+const PROJECT_VOCABULARY: Record<ProjectVocabularyCategory, ProjectVocabularyEntry[]> = {
+  methods: [
+    entry("surrogate modeling", ["surrogate model", "surrogate modeling", "reduced order", "reduced-order", "machine learning", "neural network", "physics informed", "physics-informed"]),
+    entry("CFD validation", ["cfd", "computational fluid dynamics", "flow simulation", "fluid simulation"]),
+    entry("thermal modeling", ["thermal model", "thermal modeling", "heat transfer", "temperature model"]),
+    entry("PID control", ["pid", "control", "controller", "tracking control"]),
+    entry("fatigue testing", ["fatigue test", "fatigue testing", "fatigue life", "crack initiation"]),
+    entry("topology optimization", ["topology optimization", "shape optimization", "geometry optimization"]),
+    entry("benchmarking", ["benchmark", "benchmarking", "comparison", "comparative"]),
+    entry("experimental validation", ["experimental validation", "experiment", "testing", "validated", "validation"])
+  ],
+  systems: [
+    entry("HVAC diffuser", ["hvac diffuser", "diffuser", "hvac", "ventilation", "indoor airflow"]),
+    entry("battery pack", ["battery pack", "battery packs", "lithium ion", "lithium-ion", "battery cell", "battery cells"]),
+    entry("cooling plate", ["cooling plate", "cold plate", "liquid cooling", "cooling channel"]),
+    entry("robotic gripper", ["robotic gripper", "soft gripper", "gripper", "manipulator"]),
+    entry("composite laminate", ["composite laminate", "composite material", "fiber reinforced", "delamination"]),
+    entry("heat exchanger", ["heat exchanger", "thermal exchanger"]),
+    entry("motor drive", ["motor drive", "electric motor", "motor control"]),
+    entry("pump", ["pump", "impeller", "centrifugal pump"]),
+    entry("bearing", ["bearing", "rolling bearing", "journal bearing"]),
+    entry("gear train", ["gear", "gear train", "gearbox"]),
+    entry("acoustic enclosure", ["acoustic enclosure", "noise enclosure", "sound enclosure"])
+  ],
+  applications: [
+    entry("fast design iteration", ["design iteration", "rapid design", "fast design", "optimization workflow"]),
+    entry("indoor thermal comfort", ["thermal comfort", "indoor comfort", "occupied zone"]),
+    entry("fast charging", ["fast charging", "charging", "charge rate"]),
+    entry("delicate manipulation", ["delicate object", "manipulation", "grasping"]),
+    entry("additive manufacturing inspection", ["additive manufacturing", "3d print", "powder bed", "defect detection"])
+  ],
+  outcomes: [
+    entry("pressure drop reduction", ["pressure drop", "pressure loss"]),
+    entry("temperature uniformity", ["temperature uniformity", "thermal uniformity", "temperature distribution"]),
+    entry("fatigue life prediction", ["fatigue life", "life prediction", "crack initiation"]),
+    entry("tracking error reduction", ["tracking error", "trajectory tracking", "position error"]),
+    entry("efficiency improvement", ["efficiency", "energy efficiency", "performance improvement"]),
+    entry("vibration reduction", ["vibration", "vibration reduction", "modal"]),
+    entry("noise reduction", ["noise", "acoustic", "sound pressure"]),
+    entry("prediction accuracy", ["prediction accuracy", "rmse", "error prediction"])
+  ],
+  materialsOrDatasets: [
+    entry("lithium-ion cells", ["lithium ion", "lithium-ion", "battery cell", "battery cells"]),
+    entry("composite materials", ["composite", "fiber reinforced", "laminate"]),
+    entry("additive manufacturing data", ["additive manufacturing", "3d printing", "powder bed"]),
+    entry("sensor logs", ["sensor", "sensor logs", "measurement data"]),
+    entry("CFD cases", ["cfd case", "cfd cases", "simulation case", "flow simulation"]),
+    entry("fatigue test data", ["fatigue test", "fatigue data", "s-n curve"])
+  ],
+  limitationSignals: [
+    entry("limited validation", ["limited validation", "lack of validation", "validation remains", "not validated"]),
+    entry("sparse benchmarking", ["sparse benchmark", "few benchmark", "limited benchmark", "comparison is limited"]),
+    entry("weak recent-paper signal", ["low recent", "few recent", "older literature"]),
+    entry("fragmented clusters", ["fragmented", "multiple clusters", "different subfields"]),
+    entry("few comparative studies", ["few comparative", "limited comparison", "comparative study"])
+  ]
+};
+
+function entry(label: string, terms: string[]): ProjectVocabularyEntry {
+  return { label, terms };
+}
+
+function supportingWorksForCluster(cluster: TopicCluster, works: NormalizedWork[]): NormalizedWork[] {
+  return cluster.paperIds
+    .map((paperId) => works.find((work) => work.id === paperId))
+    .filter((work): work is NormalizedWork => Boolean(work))
+    .slice(0, 6);
+}
+
+function extractProjectIngredients(cluster: TopicCluster, supportingWorks: NormalizedWork[], request: ResearchMapRequest): ProjectIngredients {
+  const text = [request.topic, request.field ?? "", cluster.label, ...supportingWorks.map((work) => work.compactText)].join(" ");
+  const ingredients: ProjectIngredients = {
+    methods: extractVocabularyLabels(text, "methods"),
+    systems: extractVocabularyLabels(text, "systems"),
+    applications: extractVocabularyLabels(text, "applications"),
+    outcomes: extractVocabularyLabels(text, "outcomes"),
+    materialsOrDatasets: extractVocabularyLabels(text, "materialsOrDatasets"),
+    limitationSignals: extractVocabularyLabels(text, "limitationSignals")
+  };
+
+  if (!ingredients.methods.length) {
+    ingredients.methods = ["benchmarking"];
+  }
+  if (!ingredients.systems.length && cluster.label) {
+    ingredients.systems = [readableClusterSystem(cluster.label)];
+  }
+  if (!ingredients.outcomes.length) {
+    ingredients.outcomes = ["prediction accuracy"];
+  }
+  if (!ingredients.materialsOrDatasets.length && ingredients.methods.includes("CFD validation")) {
+    ingredients.materialsOrDatasets = ["CFD cases"];
+  }
+  if (!ingredients.limitationSignals.length && cluster.paperCount <= 2) {
+    ingredients.limitationSignals = ["weak recent-paper signal"];
+  }
+
+  return ingredients;
+}
+
+function extractVocabularyLabels(text: string, category: ProjectVocabularyCategory): string[] {
+  const normalized = normalizeTitle(text);
+  return PROJECT_VOCABULARY[category]
+    .filter((item) => item.terms.some((term) => normalized.includes(normalizeTitle(term))))
+    .map((item) => item.label)
+    .filter((label, index, labels) => labels.indexOf(label) === index)
+    .slice(0, 4);
+}
+
+function readableClusterSystem(label: string): string {
+  const normalized = normalizeTitle(label);
+  if (!normalized || GENERIC_PROJECT_BRIDGES.has(normalized)) {
+    return "engineering system";
+  }
+  return normalized.split(" ").slice(0, 4).join(" ");
+}
+
+function generateProjectCandidates(input: {
+  request: ResearchMapRequest;
+  clusters: TopicCluster[];
+  supportingWorks: NormalizedWork[];
+  ingredients: ProjectIngredients;
+  citationNetworkSignals: CitationNetworkSignals;
+  queryFocus: QueryFocus;
+  bridgeSignal: string | null;
+}): ProjectCandidate[] {
+  const { request, clusters, supportingWorks, ingredients, citationNetworkSignals, bridgeSignal } = input;
+  if (!supportingWorks.length) {
+    return [];
+  }
+
+  const method = ingredients.methods[0] ?? "";
+  const system = ingredients.systems[0] ?? ingredients.applications[0] ?? "";
+  const outcome = ingredients.outcomes[0] ?? "";
+  const materialOrDataset = ingredients.materialsOrDatasets[0] ?? datasetForMethod(method);
+  const clusterLabel = clusters.map((cluster) => cluster.label).join(" + ");
+  const supportingReferenceIds = citationNetworkSignals.topSharedReferences
+    .filter((reference) => reference.relevanceGatePassed)
+    .slice(0, 3)
+    .map((reference) => reference.id);
+  const evidenceTypes = projectEvidenceTypes(supportingWorks, supportingReferenceIds);
+  const difficulty = request.experienceLevel === "beginner" ? "beginner" : request.experienceLevel === "technical" ? "advanced" : "intermediate";
+
+  const baseTitle = titleCase([method, "for", system, outcome].filter(Boolean).join(" "));
+  const projectType = projectTypeFor(method, system, materialOrDataset);
+  const firstExperiment = buildFirstExperiment(method, system, materialOrDataset, outcome);
+  const primary = candidateFromParts({
+    title: baseTitle,
+    description: `Compare ${method} choices for ${system} with ${outcome} as the main measurable target.`,
+    firstExperiment,
+    projectType,
+    ingredients,
+    clusters,
+    supportingWorks,
+    supportingReferenceIds,
+    evidenceTypes,
+    bridgeSignal,
+    queryFocus: input.queryFocus,
+    difficulty,
+    order: 0
+  });
+
+  const benchmarkTitle = titleCase(["Benchmark", system, outcome, "with", materialOrDataset].filter(Boolean).join(" "));
+  const benchmark = candidateFromParts({
+    title: benchmarkTitle,
+    description: `Build a compact benchmark around ${system} and report ${outcome} against one evidence-backed baseline.`,
+    firstExperiment: buildBenchmarkExperiment(system, materialOrDataset, outcome),
+    projectType: "benchmark",
+    ingredients: { ...ingredients, methods: uniqueTokens([...ingredients.methods, "benchmarking"]) },
+    clusters,
+    supportingWorks,
+    supportingReferenceIds,
+    evidenceTypes,
+    bridgeSignal,
+    queryFocus: input.queryFocus,
+    difficulty,
+    order: 1
+  });
+
+  const validationTitle = titleCase(["Validate", method, "for", system].filter(Boolean).join(" "));
+  const validation = candidateFromParts({
+    title: validationTitle,
+    description: `Use ${clusterLabel.toLowerCase()} papers to validate whether ${method} transfers to a constrained ${system} case.`,
+    firstExperiment: buildValidationExperiment(method, system, materialOrDataset, outcome),
+    projectType: method.includes("testing") ? "experimental-test" : "replication",
+    ingredients,
+    clusters,
+    supportingWorks,
+    supportingReferenceIds,
+    evidenceTypes,
+    bridgeSignal,
+    queryFocus: input.queryFocus,
+    difficulty,
+    order: 2
+  });
+
+  return [primary, benchmark, validation];
+}
+
+function candidateFromParts(candidate: ProjectCandidate): ProjectCandidate {
+  return {
+    ...candidate,
+    title: trimProjectTitle(candidate.title),
+    firstExperiment: candidate.firstExperiment.trim()
+  };
+}
+
+function generateCrossClusterProjectCandidates(
+  request: ResearchMapRequest,
+  clusters: TopicCluster[],
+  works: NormalizedWork[],
+  citationNetworkSignals: CitationNetworkSignals,
+  queryFocus: QueryFocus
+): ProjectCandidate[] {
+  const clusterEntries = clusters.slice(0, 5).map((cluster) => {
+    const supportingWorks = supportingWorksForCluster(cluster, works);
     return {
-      title: `Build a focused ${cluster.label.toLowerCase()} research map`,
-      description: `Create a small project that compares methods, datasets, or evaluation gaps in ${cluster.label.toLowerCase()} using the strongest recent papers as evidence.`,
-      difficulty,
-      requiredBackground: requiredBackgroundFor(request.goal, cluster.label),
-      supportingPaperIds: supportingWorks.map((work) => work.id),
-      supportingClusterIds: [cluster.id],
-      reasonCodes: buildIdeaReasonCodes(supportingWorks),
-      whyNow: `Evidence suggests this is worth exploring because ${cluster.paperCount} relevant works appeared in the selected range and ${(cluster.recentPaperShare * 100).toFixed(0)}% are recent.`,
-      mvpVersion: `Read the top ${Math.min(5, supportingWorks.length)} supporting papers, reproduce one core method or comparison, and write a short evidence-backed summary of what is still hard.`,
-      confidence,
-      traceability: {
-        supportingPaperIds: supportingWorks.map((work) => work.id),
-        supportingClusterIds: [cluster.id],
-        supportingReferenceIds,
-        evidenceTypes,
-        evidenceNote: supportingReferenceIds.length
-          ? `This possible direction is tied to ${supportingWorks.length} papers, the ${cluster.label} cluster, and ${supportingReferenceIds.length} shared references that passed deterministic relevance gates.`
-          : `This possible direction is tied to ${supportingWorks.length} papers and the ${cluster.label} cluster; no shared reference evidence passed the graph gates.`,
-        limitations: [
-          "Traceability shows supporting evidence in this OpenAlex result set, not proof of novelty.",
-          "Shared references are supporting context only and may include methods or review papers.",
-          ...focusLimitations
-        ]
-      }
+      cluster,
+      supportingWorks,
+      ingredients: extractProjectIngredients(cluster, supportingWorks, request)
     };
   });
+  const candidates: ProjectCandidate[] = [];
+
+  for (let index = 0; index < clusterEntries.length - 1; index += 1) {
+    const left = clusterEntries[index];
+    const right = clusterEntries[index + 1];
+    const bridge = crossClusterBridge(left.ingredients, right.ingredients, citationNetworkSignals);
+    if (!bridge || !left.supportingWorks.length || !right.supportingWorks.length) {
+      continue;
+    }
+    const ingredients = mergeProjectIngredients(left.ingredients, right.ingredients);
+    candidates.push(
+      ...generateProjectCandidates({
+        request,
+        clusters: [left.cluster, right.cluster],
+        supportingWorks: [...left.supportingWorks.slice(0, 3), ...right.supportingWorks.slice(0, 3)],
+        ingredients,
+        citationNetworkSignals,
+        queryFocus,
+        bridgeSignal: bridge
+      }).map((candidate) => ({ ...candidate, order: candidate.order + 20 + index * 3 }))
+    );
+  }
+
+  return candidates;
+}
+
+function crossClusterBridge(
+  left: ProjectIngredients,
+  right: ProjectIngredients,
+  citationNetworkSignals: CitationNetworkSignals
+): string | null {
+  const groups: Array<keyof ProjectIngredients> = ["methods", "systems", "applications", "outcomes", "materialsOrDatasets"];
+  for (const group of groups) {
+    const shared = left[group].find((item) => right[group].includes(item) && !GENERIC_PROJECT_BRIDGES.has(normalizeTitle(item)));
+    if (shared) {
+      return `shared ${groupLabel(group)}: ${shared}`;
+    }
+  }
+  const reference = citationNetworkSignals.topSharedReferences.find((item) => item.relevanceGatePassed && item.referenceFrequency >= 2);
+  return reference ? "shared-reference support" : null;
+}
+
+function groupLabel(group: keyof ProjectIngredients): string {
+  if (group === "materialsOrDatasets") return "material/data source";
+  if (group === "systems") return "system";
+  if (group === "applications") return "application";
+  if (group === "outcomes") return "outcome";
+  return "method";
+}
+
+function mergeProjectIngredients(left: ProjectIngredients, right: ProjectIngredients): ProjectIngredients {
+  return {
+    methods: uniqueTokens([...left.methods, ...right.methods]).slice(0, 4),
+    systems: uniqueTokens([...left.systems, ...right.systems]).slice(0, 4),
+    applications: uniqueTokens([...left.applications, ...right.applications]).slice(0, 4),
+    outcomes: uniqueTokens([...left.outcomes, ...right.outcomes]).slice(0, 4),
+    materialsOrDatasets: uniqueTokens([...left.materialsOrDatasets, ...right.materialsOrDatasets]).slice(0, 4),
+    limitationSignals: uniqueTokens([...left.limitationSignals, ...right.limitationSignals]).slice(0, 4)
+  };
+}
+
+function filterProjectCandidates(candidates: ProjectCandidate[]): ProjectCandidate[] {
+  const seenTitles = new Set<string>();
+  const seenCombos = new Set<string>();
+
+  return candidates.filter((candidate) => {
+    const normalizedTitle = normalizeTitle(candidate.title);
+    const comboKey = projectComboKey(candidate.ingredients);
+    if (!candidate.supportingWorks.length || !hasMinimumProjectShape(candidate.ingredients)) return false;
+    if (!candidate.firstExperiment || !isValidFirstExperiment(candidate.firstExperiment, candidate.ingredients)) return false;
+    if (!normalizedTitle || normalizedTitle.includes("research map")) return false;
+    if (isClusterLabelParaphrase(candidate.title, candidate.clusters)) return false;
+    if (wordCount(candidate.title) > MAX_PROJECT_TITLE_WORDS) return false;
+    if (seenTitles.has(normalizedTitle) || seenCombos.has(comboKey)) return false;
+    seenTitles.add(normalizedTitle);
+    seenCombos.add(comboKey);
+    return true;
+  });
+}
+
+export function hasMinimumProjectShape(ingredients: ProjectIngredients): boolean {
+  return countTrue([
+    ingredients.methods.length > 0,
+    ingredients.systems.length > 0 || ingredients.applications.length > 0,
+    ingredients.outcomes.length > 0
+  ]) >= 2;
+}
+
+export function isValidFirstExperiment(firstExperiment: string, ingredients: ProjectIngredients): boolean {
+  const normalized = normalizeTitle(firstExperiment);
+  if (wordCount(firstExperiment) < MIN_FIRST_EXPERIMENT_WORDS) return false;
+  if (!ACTION_VERBS.some((verb) => normalized.includes(verb))) return false;
+  const ingredientTerms = [
+    ...ingredients.methods,
+    ...ingredients.systems,
+    ...ingredients.applications,
+    ...ingredients.outcomes,
+    ...ingredients.materialsOrDatasets
+  ].flatMap((item) => tokenize(item));
+  const experimentTokens = new Set(tokenize(firstExperiment));
+  return ingredientTerms.some((term) => experimentTokens.has(term));
+}
+
+function scoreProjectCandidates(candidates: ProjectCandidate[], allWorks: NormalizedWork[]): ScoredProjectCandidate[] {
+  return candidates.map((candidate) => {
+    const specificityScore = computeProjectSpecificityScore(candidate.ingredients);
+    const evidenceScore = computeEvidenceScore(candidate.supportingWorks, candidate.supportingReferenceIds);
+    const executionFitScore = computeExecutionFitScore(candidate);
+    const distinctivenessScore = computeDistinctivenessScore(candidate, allWorks);
+    const traceabilityScore = computeTraceabilityScore(candidate);
+    const score =
+      0.3 * evidenceScore +
+      0.25 * specificityScore +
+      0.2 * executionFitScore +
+      0.15 * distinctivenessScore +
+      0.1 * traceabilityScore;
+
+    return {
+      ...candidate,
+      score,
+      specificityScore,
+      evidenceScore,
+      executionFitScore,
+      distinctivenessScore,
+      traceabilityScore,
+      confidence: projectConfidence(candidate, evidenceScore),
+      distinctivenessSignals: buildDistinctivenessSignals(candidate, distinctivenessScore)
+    };
+  });
+}
+
+function dedupeAndTakeTopProjectIdeas(candidates: ScoredProjectCandidate[], count: number): ProjectIdea[] {
+  return candidates
+    .slice()
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.evidenceScore !== a.evidenceScore) return b.evidenceScore - a.evidenceScore;
+      if (b.specificityScore !== a.specificityScore) return b.specificityScore - a.specificityScore;
+      return a.order - b.order;
+    })
+    .slice(0, count)
+    .map(projectIdeaFromCandidate);
+}
+
+function projectIdeaFromCandidate(candidate: ScoredProjectCandidate): ProjectIdea {
+  const supportingPaperIds = candidate.supportingWorks.map((work) => work.id);
+  const supportingClusterIds = candidate.clusters.map((cluster) => cluster.id);
+  const clusterLabel = candidate.clusters.map((cluster) => cluster.label).join(" + ");
+  const limitations = [
+    "Distinctive within retrieved OpenAlex evidence, not proof of novelty.",
+    "Shared references are supporting context only and may include methods or review papers.",
+    ...candidate.ingredients.limitationSignals.map((signal) => `Limitation signal: ${signal}.`),
+    ...queryFocusLimitations(candidate.queryFocus)
+  ];
+
+  return {
+    title: candidate.title,
+    description: candidate.description,
+    difficulty: candidate.difficulty,
+    requiredBackground: requiredBackgroundFor(candidate.difficulty === "advanced" ? "publish" : "build-project", clusterLabel),
+    supportingPaperIds,
+    supportingClusterIds,
+    reasonCodes: uniqueTokens([...buildIdeaReasonCodes(candidate.supportingWorks), ...candidate.distinctivenessSignals.map((signal) => normalizeTitle(signal).replace(/\s+/g, "-"))]),
+    whyNow: `Grounded by ${supportingPaperIds.length} supporting papers across ${supportingClusterIds.length} cluster(s), with ${(average(candidate.supportingWorks.map((work) => work.relevanceScore)) * 100).toFixed(0)}% average relevance signal.`,
+    mvpVersion: candidate.firstExperiment,
+    confidence: candidate.confidence,
+    traceability: {
+      supportingPaperIds,
+      supportingClusterIds,
+      supportingReferenceIds: candidate.supportingReferenceIds,
+      evidenceTypes: candidate.evidenceTypes,
+      evidenceNote: candidate.supportingReferenceIds.length
+        ? `Why grounded: supported by ${supportingPaperIds.length} papers, ${supportingClusterIds.length} cluster(s), and ${candidate.supportingReferenceIds.length} shared references that passed deterministic gates.`
+        : `Why grounded: supported by ${supportingPaperIds.length} papers and ${supportingClusterIds.length} cluster(s); no shared reference evidence passed the graph gates.`,
+      limitations
+    },
+    distinctivenessScore: rounded(candidate.distinctivenessScore),
+    specificityScore: rounded(candidate.specificityScore),
+    evidenceScore: rounded(candidate.evidenceScore),
+    executionFitScore: rounded(candidate.executionFitScore),
+    traceabilityScore: rounded(candidate.traceabilityScore),
+    firstExperiment: candidate.firstExperiment,
+    projectType: candidate.projectType,
+    distinctivenessSignals: candidate.distinctivenessSignals,
+    projectIngredients: candidate.ingredients
+  };
+}
+
+export function computeProjectSpecificityScore(ingredients: ProjectIngredients): number {
+  const hasMethod = ingredients.methods.length ? 1 : 0;
+  const hasSystemOrApplication = ingredients.systems.length || ingredients.applications.length ? 1 : 0;
+  const hasMeasurableOutcome = ingredients.outcomes.length ? 1 : 0;
+  return 0.35 * hasMethod + 0.35 * hasSystemOrApplication + 0.3 * hasMeasurableOutcome;
+}
+
+function computeEvidenceScore(supportingWorks: NormalizedWork[], supportingReferenceIds: string[]): number {
+  const directPaperSupportScore = clamp01(supportingWorks.length / 4);
+  const relevanceSupportScore = clamp01(average(supportingWorks.map((work) => work.relevanceScore)));
+  const recentInfluenceSupportScore = clamp01(average(supportingWorks.map((work) => work.recentInfluenceScore)));
+  const citationNetworkSupportScore = clamp01(Math.max(supportingReferenceIds.length / 3, average(supportingWorks.map((work) => work.graphSupportScore))));
+  return (
+    0.4 * directPaperSupportScore +
+    0.25 * relevanceSupportScore +
+    0.2 * recentInfluenceSupportScore +
+    0.15 * citationNetworkSupportScore
+  );
+}
+
+function computeExecutionFitScore(candidate: ProjectCandidate): number {
+  const text = normalizeTitle([candidate.firstExperiment, candidate.projectType, candidate.ingredients.materialsOrDatasets.join(" ")].join(" "));
+  let score = 0.35;
+  if (/(simulate|generate|cfd|thermal|model|train)/.test(text)) score += 0.2;
+  if (/(dataset|sensor|benchmark|compare|analyze|logs|cases|data)/.test(text)) score += 0.2;
+  if (/(build|prototype|test|measure)/.test(text)) score += 0.1;
+  if (candidate.ingredients.outcomes.length) score += 0.1;
+  if (/(deployment|clinical|full scale|proprietary)/.test(text)) score -= 0.25;
+  return clamp01(score);
+}
+
+function computeDistinctivenessScore(candidate: ProjectCandidate, allWorks: NormalizedWork[]): number {
+  const method = candidate.ingredients.methods[0] ?? "";
+  const system = candidate.ingredients.systems[0] ?? candidate.ingredients.applications[0] ?? "";
+  const outcome = candidate.ingredients.outcomes[0] ?? "";
+  const pairs = [
+    [method, system],
+    [method, outcome],
+    [system, outcome]
+  ].filter((pair) => pair.every(Boolean));
+  if (!pairs.length) return 0;
+
+  const titleTexts = allWorks.map((work) => work.normalizedTitle);
+  const pairScores = pairs.map(([left, right]) => {
+    const leftTokens = tokenize(left);
+    const rightTokens = tokenize(right);
+    const repeats = titleTexts.filter((title) => {
+      const titleTokens = new Set(tokenize(title));
+      return leftTokens.some((token) => titleTokens.has(token)) && rightTokens.some((token) => titleTokens.has(token));
+    }).length;
+    return 1 - clamp01(repeats / Math.max(1, allWorks.length * 0.35));
+  });
+
+  return clamp01(average(pairScores));
+}
+
+function computeTraceabilityScore(candidate: ProjectCandidate): number {
+  const hasPapers = candidate.supportingWorks.length ? 1 : 0;
+  const hasClusters = candidate.clusters.length ? 1 : 0;
+  const hasReferences = candidate.supportingReferenceIds.length ? 1 : 0;
+  const hasEvidenceTypes = candidate.evidenceTypes.length ? 1 : 0;
+  const hasLimitations = candidate.ingredients.limitationSignals.length ? 1 : 0.7;
+  return 0.3 * hasPapers + 0.25 * hasClusters + 0.15 * hasReferences + 0.2 * hasEvidenceTypes + 0.1 * hasLimitations;
+}
+
+function projectConfidence(candidate: ProjectCandidate, evidenceScore: number): Confidence {
+  const directPapers = candidate.supportingWorks.length;
+  const averageRelevance = average(candidate.supportingWorks.map((work) => work.relevanceScore));
+  const hasRecentInfluence = candidate.supportingWorks.some((work) => work.recentInfluenceScore >= 0.7);
+  const hasNetworkSupport = candidate.supportingReferenceIds.length > 0 || candidate.supportingWorks.some((work) => work.graphSupportScore > 0);
+  let confidence: Confidence = evidenceScore >= 0.72 && averageRelevance >= 0.55 ? "strong" : evidenceScore >= 0.45 ? "moderate" : "sparse";
+
+  if (directPapers < 2 && confidence === "strong") confidence = "moderate";
+  if (confidence === "strong" && (!hasRecentInfluence || !hasNetworkSupport)) confidence = "moderate";
+  if (candidate.clusters.some((cluster) => cluster.averageRelevanceScore < 0.45) && confidence === "strong") confidence = "moderate";
+  if (candidate.queryFocus.label === "broad" && confidence === "strong") confidence = "moderate";
+  if (candidate.queryFocus.label === "sparse") confidence = "sparse";
+  return confidence;
+}
+
+function buildDistinctivenessSignals(candidate: ProjectCandidate, distinctivenessScore: number): string[] {
+  const signals: string[] = [];
+  if (candidate.ingredients.methods.length && (candidate.ingredients.systems.length || candidate.ingredients.applications.length)) {
+    signals.push("specific method/system pairing");
+  }
+  if (candidate.ingredients.outcomes.length) {
+    signals.push("measurable outcome present");
+  }
+  if (candidate.bridgeSignal) {
+    signals.push("cross-cluster bridge");
+  }
+  if (candidate.supportingWorks.some((work) => new Date().getFullYear() - work.year <= 5)) {
+    signals.push("recent-paper support");
+  }
+  if (candidate.supportingReferenceIds.length) {
+    signals.push("shared-reference support");
+  }
+  if (distinctivenessScore >= 0.65) {
+    signals.push("not repeated across top paper titles");
+  }
+  return signals;
+}
+
+function projectEvidenceTypes(supportingWorks: NormalizedWork[], supportingReferenceIds: string[]): EvidenceType[] {
+  const evidenceTypes: EvidenceType[] = ["cluster-signal"];
+  if (supportingWorks.some((work) => new Date().getFullYear() - work.year <= 5)) {
+    evidenceTypes.push("recent-paper");
+  }
+  if (supportingWorks.some((work) => work.citationPercentileScore >= 0.85)) {
+    evidenceTypes.push("high-normalized-citation");
+  }
+  if (supportingWorks.some((work) => work.graphSupportScore > 0) || supportingReferenceIds.length) {
+    evidenceTypes.push("shared-reference");
+  }
+  return evidenceTypes;
+}
+
+function projectTypeFor(method: string, system: string, materialOrDataset: string): NonNullable<ProjectIdea["projectType"]> {
+  const text = normalizeTitle([method, system, materialOrDataset].join(" "));
+  if (text.includes("surrogate") || text.includes("thermal modeling") || text.includes("cfd")) return "modeling";
+  if (text.includes("benchmark") || text.includes("data")) return "benchmark";
+  if (text.includes("fatigue testing") || text.includes("experimental")) return "experimental-test";
+  if (text.includes("topology") || text.includes("optimization")) return "design-optimization";
+  if (text.includes("gripper") || text.includes("motor") || text.includes("pump")) return "prototype-design";
+  return "dataset-analysis";
+}
+
+function buildFirstExperiment(method: string, system: string, materialOrDataset: string, outcome: string): string {
+  const action = method.includes("surrogate") ? "Generate" : method.includes("benchmark") ? "Compare" : method.includes("testing") ? "Test" : "Simulate";
+  const dataSource = materialOrDataset || datasetForMethod(method);
+  return `${action} a small ${dataSource} set for ${system}, then evaluate ${method} against ${outcome} as the main metric.`;
+}
+
+function buildBenchmarkExperiment(system: string, materialOrDataset: string, outcome: string): string {
+  return `Compare two ${system} baselines using ${materialOrDataset || "published data"} and report ${outcome} with one repeatable metric.`;
+}
+
+function buildValidationExperiment(method: string, system: string, materialOrDataset: string, outcome: string): string {
+  return `Validate ${method} on one ${system} case using ${materialOrDataset || "paper data"} and measure ${outcome} against a baseline.`;
+}
+
+function datasetForMethod(method: string): string {
+  const normalized = normalizeTitle(method);
+  if (normalized.includes("cfd")) return "CFD cases";
+  if (normalized.includes("fatigue")) return "fatigue test data";
+  if (normalized.includes("thermal")) return "sensor logs";
+  return "simulation cases";
+}
+
+function trimProjectTitle(title: string): string {
+  const words = title.split(/\s+/).filter(Boolean);
+  return words.slice(0, MAX_PROJECT_TITLE_WORDS).join(" ");
+}
+
+function isClusterLabelParaphrase(title: string, clusters: TopicCluster[]): boolean {
+  const normalizedTitle = normalizeTitle(title);
+  return clusters.some((cluster) => {
+    const label = normalizeTitle(cluster.label);
+    if (!label) return false;
+    return normalizedTitle === label || (normalizedTitle.includes(label) && wordCount(title) <= wordCount(cluster.label) + 3);
+  });
+}
+
+function projectComboKey(ingredients: ProjectIngredients): string {
+  return [
+    ingredients.methods[0] ?? "",
+    ingredients.systems[0] ?? ingredients.applications[0] ?? "",
+    ingredients.outcomes[0] ?? ""
+  ]
+    .map(normalizeTitle)
+    .join("|");
+}
+
+function countTrue(values: boolean[]): number {
+  return values.filter(Boolean).length;
+}
+
+function wordCount(text: string): number {
+  return text.split(/\s+/).filter(Boolean).length;
+}
+
+function rounded(value: number): number {
+  return Number(value.toFixed(2));
 }
 
 export function buildQueryFocus(request: ResearchMapRequest, works: NormalizedWork[], clusters: TopicCluster[]): QueryFocus {

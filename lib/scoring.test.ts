@@ -12,19 +12,23 @@ import { visibleCitationHistory } from "./citation-history-view";
 import { blendRelevance, cosineSimilarity } from "./embeddings";
 import {
   buildCompactText,
+  buildProjectIdeas,
   buildQueryFocus,
   buildResearchDirectionSummary,
   buildResearchMap,
   calculateGraphSupportScore,
   calculateDirectionMomentumScore,
+  computeProjectSpecificityScore,
   computeMapConfidence,
   getLowerActivityConfidence,
+  hasMinimumProjectShape,
+  isValidFirstExperiment,
   normalizeWorks,
   passesSharedReferenceRelevanceGate,
   reconstructAbstract,
   scoreWorks
 } from "./scoring";
-import type { CitationHistoryResult, NormalizedWork, OpenAlexWork, ResearchMapRequest, TopicCluster } from "./types";
+import type { CitationHistoryResult, CitationNetworkSignals, NormalizedWork, OpenAlexWork, QueryFocus, ResearchMapRequest, TopicCluster } from "./types";
 
 const request: ResearchMapRequest = {
   topic: "machine learning for HVAC CFD",
@@ -212,6 +216,10 @@ describe("research map output", () => {
     expect(map.projectIdeas[0].reasonCodes.length).toBeGreaterThan(0);
     expect(map.projectIdeas[0].traceability.supportingPaperIds.length).toBeGreaterThan(0);
     expect(map.projectIdeas[0].traceability.limitations.length).toBeGreaterThan(0);
+    expect(map.projectIdeas[0].title).not.toMatch(/Build a focused|research map/i);
+    expect(map.projectIdeas[0].firstExperiment).toMatch(/\b(generate|compare|build|test|measure|simulate|train|benchmark|optimize|analyze)\b/i);
+    expect(map.projectIdeas[0].title.split(/\s+/).length).toBeLessThanOrEqual(14);
+    expect(map.projectIdeas[0].distinctivenessSignals?.join(" ").toLowerCase()).not.toMatch(/novel|original/);
     expect(map.citationNetworkSignals.requestBudgetUsed).toBeLessThanOrEqual(7);
     expect(map.people[0].id).toContain("https://openalex.org/A");
     expect(map.recentInfluencePapers[0].citationHistoryStatus).toBe("unavailable");
@@ -267,6 +275,93 @@ describe("research map output", () => {
     expect(map.citationSignals.totalUsableWorks).toBe(33);
     expect(map.clusters.map((cluster) => cluster.label)).toContain("HVAC airflow modeling");
     expect(map.projectIdeas.every((idea) => idea.supportingPaperIds.length > 0)).toBe(true);
+    expect(map.projectIdeas.every((idea) => Boolean(idea.firstExperiment))).toBe(true);
+  });
+});
+
+describe("project idea synthesis", () => {
+  const focusedQuery: QueryFocus = {
+    label: "focused",
+    medianRelevance: 0.7,
+    clusterCount: 1,
+    weakClusterCount: 0,
+    weakClusterShare: 0,
+    topClusterShare: 0.6,
+    usableWorks: 20,
+    reason: "focused",
+    suggestions: []
+  };
+  const citationSignals: CitationNetworkSignals = {
+    seedPaperIds: [],
+    seedPaperCount: 0,
+    seedPapersWithReferences: 0,
+    fetchedReferenceCount: 0,
+    sharedReferenceCount: 0,
+    graphCoverageRatio: 0,
+    requestBudgetUsed: 0,
+    requestBudgetMax: 7,
+    topSharedReferences: [],
+    limitations: []
+  };
+
+  it("rejects ingredient sets with only one project-shape dimension", () => {
+    expect(hasMinimumProjectShape({ methods: ["surrogate modeling"], systems: [], applications: [], outcomes: [], materialsOrDatasets: [], limitationSignals: [] })).toBe(false);
+    expect(hasMinimumProjectShape({ methods: [], systems: ["HVAC diffuser"], applications: [], outcomes: [], materialsOrDatasets: [], limitationSignals: [] })).toBe(false);
+    expect(hasMinimumProjectShape({ methods: [], systems: [], applications: [], outcomes: ["pressure drop reduction"], materialsOrDatasets: [], limitationSignals: [] })).toBe(false);
+    expect(hasMinimumProjectShape({ methods: ["surrogate modeling"], systems: ["HVAC diffuser"], applications: [], outcomes: [], materialsOrDatasets: [], limitationSignals: [] })).toBe(true);
+  });
+
+  it("rewards method + system + outcome above method + system only", () => {
+    const partial = computeProjectSpecificityScore({ methods: ["surrogate modeling"], systems: ["HVAC diffuser"], applications: [], outcomes: [], materialsOrDatasets: [], limitationSignals: [] });
+    const complete = computeProjectSpecificityScore({ methods: ["surrogate modeling"], systems: ["HVAC diffuser"], applications: [], outcomes: ["pressure drop reduction"], materialsOrDatasets: [], limitationSignals: [] });
+
+    expect(complete).toBeGreaterThan(partial);
+  });
+
+  it("requires first experiments to be executable and connected to ingredients", () => {
+    const ingredients = { methods: ["surrogate modeling"], systems: ["HVAC diffuser"], applications: [], outcomes: ["pressure drop reduction"], materialsOrDatasets: ["CFD cases"], limitationSignals: [] };
+
+    expect(isValidFirstExperiment("Study HVAC airflow using machine learning.", ingredients)).toBe(false);
+    expect(isValidFirstExperiment("Generate CFD cases for an HVAC diffuser, then train surrogate modeling to predict pressure drop reduction.", ingredients)).toBe(true);
+  });
+
+  it("caps one-paper project ideas below strong confidence", () => {
+    const works = scoredWorks(1, 0.9).map((item) => ({
+      ...item,
+      id: "paper-1",
+      title: "Surrogate modeling for HVAC diffuser pressure drop reduction",
+      normalizedTitle: "surrogate modeling for hvac diffuser pressure drop reduction",
+      compactText: "Surrogate modeling for HVAC diffuser pressure drop reduction using CFD cases",
+      recentInfluenceScore: 0.95,
+      graphSupportScore: 1
+    }));
+    const ideas = buildProjectIdeas(
+      request,
+      [{ ...cluster("c1", "HVAC diffuser modeling", 1, 1, 0.9, 0.9), paperIds: ["paper-1"] }],
+      works,
+      citationSignals,
+      focusedQuery
+    );
+
+    expect(ideas[0].confidence).not.toBe("strong");
+  });
+
+  it("propagates broad and sparse query uncertainty to project confidence", () => {
+    const works = scoredWorks(3, 0.9).map((item, index) => ({
+      ...item,
+      id: `paper-${index}`,
+      title: `Surrogate modeling for HVAC diffuser pressure drop reduction ${index}`,
+      normalizedTitle: `surrogate modeling for hvac diffuser pressure drop reduction ${index}`,
+      compactText: "Surrogate modeling for HVAC diffuser pressure drop reduction using CFD cases",
+      recentInfluenceScore: 0.95,
+      graphSupportScore: 1
+    }));
+    const projectCluster = { ...cluster("c1", "HVAC diffuser modeling", 3, 1, 0.9, 0.9), paperIds: works.map((item) => item.id) };
+    const broadIdeas = buildProjectIdeas(request, [projectCluster], works, citationSignals, { ...focusedQuery, label: "broad" });
+    const sparseIdeas = buildProjectIdeas(request, [projectCluster], works, citationSignals, { ...focusedQuery, label: "sparse" });
+
+    expect(broadIdeas[0].confidence).not.toBe("strong");
+    expect(sparseIdeas[0].confidence).toBe("sparse");
   });
 });
 
