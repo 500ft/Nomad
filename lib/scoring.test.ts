@@ -363,6 +363,56 @@ describe("project idea synthesis", () => {
     expect(broadIdeas[0].confidence).not.toBe("strong");
     expect(sparseIdeas[0].confidence).toBe("sparse");
   });
+
+  it("collapses HVAC diffuser surrogate outcome swaps into one multi-objective concept", () => {
+    const works = [
+      "Surrogate modeling for HVAC diffuser efficiency improvement",
+      "Surrogate modeling for HVAC diffuser prediction accuracy",
+      "Surrogate modeling for HVAC diffuser thermal comfort"
+    ].map((title, index) => ({
+      ...scoredWorks(1, 0.72)[0],
+      id: `diffuser-${index}`,
+      title,
+      normalizedTitle: title.toLowerCase(),
+      compactText: `${title}. CFD diffuser angle inlet velocity room layout airflow distribution thermal comfort.`,
+      recentInfluenceScore: 0.82,
+      graphSupportScore: 0.4
+    }));
+    const ideas = buildProjectIdeas(
+      request,
+      works.map((item, index) => ({
+        ...cluster(`diffuser-c${index}`, "HVAC diffuser surrogate modeling", 1, 1, 0.8, 0.72),
+        paperIds: [item.id]
+      })),
+      works,
+      citationSignals,
+      focusedQuery
+    );
+    const hvacIdeas = ideas.filter((idea) => idea.projectIngredients?.systems.includes("HVAC diffuser"));
+
+    expect(hvacIdeas).toHaveLength(1);
+    expect(hvacIdeas[0].title).toBe("Multi-objective Surrogate Modeling For HVAC Diffuser Performance");
+    expect(hvacIdeas[0].firstExperiment).toContain("Generate a small CFD dataset");
+    expect(hvacIdeas[0].firstExperiment).not.toContain("CFD cases set");
+    expect(hvacIdeas[0].firstExperiment).not.toContain("sensor logs");
+    expect(ideas.map((idea) => idea.title).join(" ")).not.toMatch(/prediction accuracy|noise reduction/i);
+  });
+
+  it("does not create HVAC diffuser noise projects without acoustic evidence", () => {
+    const works = scoredWorks(3, 0.75).map((item, index) => ({
+      ...item,
+      id: `airflow-${index}`,
+      title: `Surrogate modeling for HVAC diffuser airflow ${index}`,
+      normalizedTitle: `surrogate modeling for hvac diffuser airflow ${index}`,
+      compactText: "Surrogate modeling for HVAC diffuser airflow distribution using CFD dataset and thermal comfort metrics.",
+      recentInfluenceScore: 0.8,
+      graphSupportScore: 0.4
+    }));
+    const projectCluster = { ...cluster("airflow", "HVAC diffuser airflow modeling", 3, 1, 0.8, 0.75), paperIds: works.map((item) => item.id) };
+    const ideas = buildProjectIdeas(request, [projectCluster], works, citationSignals, focusedQuery);
+
+    expect(ideas.map((idea) => idea.title).join(" ")).not.toMatch(/noise reduction/i);
+  });
 });
 
 describe("query focus", () => {

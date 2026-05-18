@@ -40,6 +40,16 @@ const MAX_PROJECT_TITLE_WORDS = 14;
 const MIN_FIRST_EXPERIMENT_WORDS = 10;
 const ACTION_VERBS = ["generate", "compare", "build", "test", "measure", "simulate", "train", "benchmark", "optimize", "analyze"];
 const GENERIC_PROJECT_BRIDGES = new Set(["analysis", "application", "approach", "design", "engineering", "method", "model", "modeling", "optimization", "performance", "study", "system"]);
+const ACOUSTIC_EVIDENCE_TERMS = ["noise", "aeroacoustic", "aeroacoustics", "sound pressure", "spl", "acoustic", "sound level"];
+const SENSOR_EVIDENCE_TERMS = ["sensor", "sensors", "measurement", "measurements", "monitoring", "bas", "bms", "building data"];
+const PHYSICAL_OUTCOME_EVIDENCE: Array<{ outcome: string; terms: string[] }> = [
+  { outcome: "pressure drop reduction", terms: ["pressure drop", "pressure loss", "static pressure"] },
+  { outcome: "airflow uniformity", terms: ["airflow uniformity", "airflow distribution", "air distribution", "occupied zone", "velocity field"] },
+  { outcome: "thermal comfort", terms: ["thermal comfort", "comfort", "pmv", "ppd", "occupied zone"] },
+  { outcome: "ventilation effectiveness", terms: ["ventilation effectiveness", "air change", "fresh air", "ventilation rate"] },
+  { outcome: "energy use reduction", terms: ["energy use", "energy consumption", "fan power", "energy efficiency"] },
+  { outcome: "occupied-zone velocity", terms: ["occupied-zone velocity", "occupied zone velocity", "airspeed", "air speed"] }
+];
 
 const STOP_WORDS = new Set([
   "a",
@@ -475,6 +485,9 @@ const PROJECT_VOCABULARY: Record<ProjectVocabularyCategory, ProjectVocabularyEnt
   ],
   outcomes: [
     entry("pressure drop reduction", ["pressure drop", "pressure loss"]),
+    entry("airflow uniformity", ["airflow uniformity", "airflow distribution", "air distribution", "velocity field"]),
+    entry("thermal comfort", ["thermal comfort", "occupied zone", "pmv", "ppd"]),
+    entry("ventilation effectiveness", ["ventilation effectiveness", "air change", "ventilation rate"]),
     entry("temperature uniformity", ["temperature uniformity", "thermal uniformity", "temperature distribution"]),
     entry("fatigue life prediction", ["fatigue life", "life prediction", "crack initiation"]),
     entry("tracking error reduction", ["tracking error", "trajectory tracking", "position error"]),
@@ -488,7 +501,7 @@ const PROJECT_VOCABULARY: Record<ProjectVocabularyCategory, ProjectVocabularyEnt
     entry("composite materials", ["composite", "fiber reinforced", "laminate"]),
     entry("additive manufacturing data", ["additive manufacturing", "3d printing", "powder bed"]),
     entry("sensor logs", ["sensor", "sensor logs", "measurement data"]),
-    entry("CFD cases", ["cfd case", "cfd cases", "simulation case", "flow simulation"]),
+    entry("CFD dataset", ["cfd case", "cfd cases", "simulation case", "flow simulation", "cfd dataset"]),
     entry("fatigue test data", ["fatigue test", "fatigue data", "s-n curve"])
   ],
   limitationSignals: [
@@ -521,6 +534,7 @@ function extractProjectIngredients(cluster: TopicCluster, supportingWorks: Norma
     materialsOrDatasets: extractVocabularyLabels(text, "materialsOrDatasets"),
     limitationSignals: extractVocabularyLabels(text, "limitationSignals")
   };
+  ingredients.outcomes = normalizeOutcomesForProjectTitles(ingredients.outcomes, text);
 
   if (!ingredients.methods.length) {
     ingredients.methods = ["benchmarking"];
@@ -529,10 +543,16 @@ function extractProjectIngredients(cluster: TopicCluster, supportingWorks: Norma
     ingredients.systems = [readableClusterSystem(cluster.label)];
   }
   if (!ingredients.outcomes.length) {
-    ingredients.outcomes = ["prediction accuracy"];
+    ingredients.outcomes = [supportedPhysicalOutcome(text) ?? "model benchmark error"];
   }
-  if (!ingredients.materialsOrDatasets.length && ingredients.methods.includes("CFD validation")) {
-    ingredients.materialsOrDatasets = ["CFD cases"];
+  if (!ingredients.materialsOrDatasets.length && (ingredients.methods.includes("CFD validation") || textMentions(text, ["cfd", "computational fluid dynamics", "flow simulation"]))) {
+    ingredients.materialsOrDatasets = ["CFD dataset"];
+  }
+  if (ingredients.materialsOrDatasets.includes("sensor logs") && !hasSensorEvidence(text)) {
+    ingredients.materialsOrDatasets = ingredients.materialsOrDatasets.filter((item) => item !== "sensor logs");
+  }
+  if (!ingredients.materialsOrDatasets.length && ingredients.methods.includes("surrogate modeling")) {
+    ingredients.materialsOrDatasets = textMentions(text, ["cfd", "diffuser", "airflow", "flow simulation"]) ? ["CFD dataset"] : ["simulation dataset"];
   }
   if (!ingredients.limitationSignals.length && cluster.paperCount <= 2) {
     ingredients.limitationSignals = ["weak recent-paper signal"];
@@ -548,6 +568,94 @@ function extractVocabularyLabels(text: string, category: ProjectVocabularyCatego
     .map((item) => item.label)
     .filter((label, index, labels) => labels.indexOf(label) === index)
     .slice(0, 4);
+}
+
+function normalizeOutcomesForProjectTitles(outcomes: string[], evidenceText: string): string[] {
+  const normalized: string[] = [];
+  for (const outcome of outcomes) {
+    const titleOutcome = normalizeOutcomeForProjectTitle(outcome, evidenceText);
+    if (titleOutcome && !normalized.includes(titleOutcome)) {
+      normalized.push(titleOutcome);
+    }
+  }
+  return normalized;
+}
+
+function normalizeOutcomeForProjectTitle(outcome: string, evidenceText: string): string | null {
+  const family = outcomeFamily(outcome);
+  if (family === "model-metric") {
+    return null;
+  }
+  if (family === "noise" && !hasAcousticEvidence(evidenceText)) {
+    return null;
+  }
+  if (family === "vague-efficiency") {
+    return supportedPhysicalOutcome(evidenceText);
+  }
+  return hasPhysicalOutcomeEvidence(outcome, evidenceText) ? outcome : outcome;
+}
+
+function supportedPhysicalOutcome(evidenceText: string): string | null {
+  return PHYSICAL_OUTCOME_EVIDENCE.find((item) => hasPhysicalOutcomeEvidence(item.outcome, evidenceText))?.outcome ?? null;
+}
+
+function hasPhysicalOutcomeEvidence(outcome: string, evidenceText: string): boolean {
+  const family = outcomeFamily(outcome);
+  const evidence = PHYSICAL_OUTCOME_EVIDENCE.find((item) => item.outcome === outcome);
+  if (evidence) {
+    return textMentions(evidenceText, evidence.terms);
+  }
+  if (family === "noise") {
+    return hasAcousticEvidence(evidenceText);
+  }
+  if (family === "model-metric" || family === "vague-efficiency") {
+    return false;
+  }
+  return true;
+}
+
+function hasAcousticEvidence(text: string): boolean {
+  return textMentions(text, ACOUSTIC_EVIDENCE_TERMS);
+}
+
+function hasSensorEvidence(text: string): boolean {
+  return textMentions(text, SENSOR_EVIDENCE_TERMS);
+}
+
+function textMentions(text: string, terms: string[]): boolean {
+  const normalized = normalizeTitle(text);
+  return terms.some((term) => normalized.includes(normalizeTitle(term)));
+}
+
+function outcomeFamily(outcome: string): string {
+  const normalized = normalizeTitle(outcome);
+  if (normalized.includes("prediction accuracy") || normalized.includes("rmse") || normalized.includes("model benchmark")) return "model-metric";
+  if (normalized.includes("efficiency")) return "vague-efficiency";
+  if (normalized.includes("noise") || normalized.includes("acoustic") || normalized.includes("sound")) return "noise";
+  if (normalized.includes("pressure")) return "pressure";
+  if (normalized.includes("airflow") || normalized.includes("velocity") || normalized.includes("ventilation")) return "airflow";
+  if (normalized.includes("thermal") || normalized.includes("temperature") || normalized.includes("comfort")) return "thermal";
+  if (normalized.includes("fatigue")) return "fatigue";
+  return normalized;
+}
+
+function methodFamily(method: string): string {
+  const normalized = normalizeTitle(method);
+  if (normalized.includes("surrogate") || normalized.includes("machine learning") || normalized.includes("neural")) return "surrogate-modeling";
+  if (normalized.includes("cfd")) return "cfd";
+  if (normalized.includes("thermal")) return "thermal-modeling";
+  if (normalized.includes("benchmark")) return "benchmarking";
+  if (normalized.includes("fatigue")) return "fatigue-testing";
+  return normalized;
+}
+
+function systemFamily(system: string): string {
+  const normalized = normalizeTitle(system);
+  if (normalized.includes("hvac") || normalized.includes("diffuser") || normalized.includes("ventilation")) return "hvac-diffuser";
+  if (normalized.includes("battery") || normalized.includes("cell")) return "battery-pack";
+  if (normalized.includes("cooling plate") || normalized.includes("cold plate")) return "cooling-plate";
+  if (normalized.includes("gripper") || normalized.includes("robot")) return "robotic-gripper";
+  return normalized;
 }
 
 function readableClusterSystem(label: string): string {
@@ -726,19 +834,16 @@ function mergeProjectIngredients(left: ProjectIngredients, right: ProjectIngredi
 
 function filterProjectCandidates(candidates: ProjectCandidate[]): ProjectCandidate[] {
   const seenTitles = new Set<string>();
-  const seenCombos = new Set<string>();
 
   return candidates.filter((candidate) => {
     const normalizedTitle = normalizeTitle(candidate.title);
-    const comboKey = projectComboKey(candidate.ingredients);
     if (!candidate.supportingWorks.length || !hasMinimumProjectShape(candidate.ingredients)) return false;
     if (!candidate.firstExperiment || !isValidFirstExperiment(candidate.firstExperiment, candidate.ingredients)) return false;
     if (!normalizedTitle || normalizedTitle.includes("research map")) return false;
     if (isClusterLabelParaphrase(candidate.title, candidate.clusters)) return false;
     if (wordCount(candidate.title) > MAX_PROJECT_TITLE_WORDS) return false;
-    if (seenTitles.has(normalizedTitle) || seenCombos.has(comboKey)) return false;
+    if (seenTitles.has(normalizedTitle)) return false;
     seenTitles.add(normalizedTitle);
-    seenCombos.add(comboKey);
     return true;
   });
 }
@@ -795,7 +900,15 @@ function scoreProjectCandidates(candidates: ProjectCandidate[], allWorks: Normal
 }
 
 function dedupeAndTakeTopProjectIdeas(candidates: ScoredProjectCandidate[], count: number): ProjectIdea[] {
-  return candidates
+  const grouped = new Map<string, ScoredProjectCandidate[]>();
+  for (const candidate of candidates) {
+    const key = projectConceptKey(candidate);
+    grouped.set(key, [...(grouped.get(key) ?? []), candidate]);
+  }
+
+  const conceptWinners = Array.from(grouped.values()).map((group) => mergeOutcomeSwapVariants(group));
+
+  return conceptWinners
     .slice()
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
@@ -805,6 +918,53 @@ function dedupeAndTakeTopProjectIdeas(candidates: ScoredProjectCandidate[], coun
     })
     .slice(0, count)
     .map(projectIdeaFromCandidate);
+}
+
+function mergeOutcomeSwapVariants(group: ScoredProjectCandidate[]): ScoredProjectCandidate {
+  const sorted = group.slice().sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (b.supportingWorks.length !== a.supportingWorks.length) return b.supportingWorks.length - a.supportingWorks.length;
+    return a.order - b.order;
+  });
+  const best = sorted[0];
+  const concept = projectConceptKey(best);
+
+  if (group.length <= 1 || concept !== "surrogate-modeling|hvac-diffuser") {
+    return best;
+  }
+
+  const supportingWorks = uniqueWorks(group.flatMap((candidate) => candidate.supportingWorks));
+  const clusters = uniqueClusters(group.flatMap((candidate) => candidate.clusters));
+  const supportingReferenceIds = uniqueTokens(group.flatMap((candidate) => candidate.supportingReferenceIds));
+  const ingredients = mergeManyProjectIngredients(group.map((candidate) => candidate.ingredients));
+  const merged: ScoredProjectCandidate = {
+    ...best,
+    title: "Multi-objective Surrogate Modeling For HVAC Diffuser Performance",
+    description: "Build one surrogate-modeling project around HVAC diffuser geometry and evaluate multiple physical performance outputs instead of separate metric-swap variants.",
+    firstExperiment: "Generate a small CFD dataset varying diffuser angle, inlet velocity, and room layout, then train surrogate models to predict pressure drop, airflow uniformity, and thermal comfort.",
+    projectType: "modeling",
+    ingredients: {
+      ...ingredients,
+      methods: uniqueTokens(["surrogate modeling", ...ingredients.methods]),
+      systems: uniqueTokens(["HVAC diffuser", ...ingredients.systems]),
+      outcomes: uniqueTokens(["pressure drop reduction", "airflow uniformity", "thermal comfort", ...ingredients.outcomes.filter((outcome) => outcomeFamily(outcome) !== "model-metric" && outcomeFamily(outcome) !== "noise")]),
+      materialsOrDatasets: uniqueTokens(["CFD dataset", ...ingredients.materialsOrDatasets.filter((item) => item !== "sensor logs")])
+    },
+    clusters,
+    supportingWorks,
+    supportingReferenceIds,
+    evidenceTypes: uniqueTokens(group.flatMap((candidate) => candidate.evidenceTypes)) as EvidenceType[],
+    bridgeSignal: group.find((candidate) => candidate.bridgeSignal)?.bridgeSignal ?? best.bridgeSignal,
+    score: Math.max(...group.map((candidate) => candidate.score)) + 0.02,
+    evidenceScore: computeEvidenceScore(supportingWorks, supportingReferenceIds),
+    specificityScore: 1,
+    executionFitScore: 1,
+    distinctivenessScore: Math.max(...group.map((candidate) => candidate.distinctivenessScore)),
+    traceabilityScore: Math.max(...group.map((candidate) => candidate.traceabilityScore)),
+    confidence: projectConfidence({ ...best, supportingWorks, supportingReferenceIds, clusters }, computeEvidenceScore(supportingWorks, supportingReferenceIds)),
+    distinctivenessSignals: uniqueTokens(["multi-objective physical outcomes", ...group.flatMap((candidate) => candidate.distinctivenessSignals)]).filter((signal) => !/novel|original/i.test(signal))
+  };
+  return merged;
 }
 
 function projectIdeaFromCandidate(candidate: ScoredProjectCandidate): ProjectIdea {
@@ -826,7 +986,7 @@ function projectIdeaFromCandidate(candidate: ScoredProjectCandidate): ProjectIde
     supportingPaperIds,
     supportingClusterIds,
     reasonCodes: uniqueTokens([...buildIdeaReasonCodes(candidate.supportingWorks), ...candidate.distinctivenessSignals.map((signal) => normalizeTitle(signal).replace(/\s+/g, "-"))]),
-    whyNow: `Grounded by ${supportingPaperIds.length} supporting papers across ${supportingClusterIds.length} cluster(s), with ${(average(candidate.supportingWorks.map((work) => work.relevanceScore)) * 100).toFixed(0)}% average relevance signal.`,
+    whyNow: buildTechnicalGrounding(candidate),
     mvpVersion: candidate.firstExperiment,
     confidence: candidate.confidence,
     traceability: {
@@ -848,6 +1008,52 @@ function projectIdeaFromCandidate(candidate: ScoredProjectCandidate): ProjectIde
     projectType: candidate.projectType,
     distinctivenessSignals: candidate.distinctivenessSignals,
     projectIngredients: candidate.ingredients
+  };
+}
+
+function buildTechnicalGrounding(candidate: ScoredProjectCandidate): string {
+  const method = candidate.ingredients.methods[0] ?? "the method";
+  const system = candidate.ingredients.systems[0] ?? candidate.ingredients.applications[0] ?? "the system";
+  const outcomes = candidate.ingredients.outcomes
+    .filter((outcome) => !["model-metric", "vague-efficiency"].includes(outcomeFamily(outcome)))
+    .slice(0, 3);
+  const outcomeText = outcomes.length ? outcomes.join(", ") : "a repeatable model metric";
+  return `${titleCase(system)} appears with ${method} and ${outcomeText} signals in ${candidate.supportingWorks.length} supporting paper(s).`;
+}
+
+function projectConceptKey(candidate: ProjectCandidate): string {
+  return [
+    methodFamily(candidate.ingredients.methods[0] ?? ""),
+    systemFamily(candidate.ingredients.systems[0] ?? candidate.ingredients.applications[0] ?? "")
+  ].join("|");
+}
+
+function uniqueWorks(works: NormalizedWork[]): NormalizedWork[] {
+  const seen = new Set<string>();
+  return works.filter((work) => {
+    if (seen.has(work.id)) return false;
+    seen.add(work.id);
+    return true;
+  });
+}
+
+function uniqueClusters(clusters: TopicCluster[]): TopicCluster[] {
+  const seen = new Set<string>();
+  return clusters.filter((cluster) => {
+    if (seen.has(cluster.id)) return false;
+    seen.add(cluster.id);
+    return true;
+  });
+}
+
+function mergeManyProjectIngredients(items: ProjectIngredients[]): ProjectIngredients {
+  return {
+    methods: uniqueTokens(items.flatMap((item) => item.methods)).slice(0, 5),
+    systems: uniqueTokens(items.flatMap((item) => item.systems)).slice(0, 5),
+    applications: uniqueTokens(items.flatMap((item) => item.applications)).slice(0, 5),
+    outcomes: uniqueTokens(items.flatMap((item) => item.outcomes)).slice(0, 6),
+    materialsOrDatasets: uniqueTokens(items.flatMap((item) => item.materialsOrDatasets)).slice(0, 5),
+    limitationSignals: uniqueTokens(items.flatMap((item) => item.limitationSignals)).slice(0, 5)
   };
 }
 
@@ -923,8 +1129,11 @@ function projectConfidence(candidate: ProjectCandidate, evidenceScore: number): 
   const hasNetworkSupport = candidate.supportingReferenceIds.length > 0 || candidate.supportingWorks.some((work) => work.graphSupportScore > 0);
   let confidence: Confidence = evidenceScore >= 0.72 && averageRelevance >= 0.55 ? "strong" : evidenceScore >= 0.45 ? "moderate" : "sparse";
 
-  if (directPapers < 2 && confidence === "strong") confidence = "moderate";
-  if (confidence === "strong" && (!hasRecentInfluence || !hasNetworkSupport)) confidence = "moderate";
+  if (directPapers < 2) {
+    confidence = averageRelevance >= 0.7 && hasNetworkSupport ? "moderate" : "sparse";
+  }
+  if (confidence === "moderate" && directPapers < 2 && averageRelevance < 0.7) confidence = "sparse";
+  if (confidence === "strong" && (directPapers < 4 || !hasRecentInfluence || !hasNetworkSupport)) confidence = "moderate";
   if (candidate.clusters.some((cluster) => cluster.averageRelevanceScore < 0.45) && confidence === "strong") confidence = "moderate";
   if (candidate.queryFocus.label === "broad" && confidence === "strong") confidence = "moderate";
   if (candidate.queryFocus.label === "sparse") confidence = "sparse";
@@ -981,7 +1190,7 @@ function projectTypeFor(method: string, system: string, materialOrDataset: strin
 function buildFirstExperiment(method: string, system: string, materialOrDataset: string, outcome: string): string {
   const action = method.includes("surrogate") ? "Generate" : method.includes("benchmark") ? "Compare" : method.includes("testing") ? "Test" : "Simulate";
   const dataSource = materialOrDataset || datasetForMethod(method);
-  return `${action} a small ${dataSource} set for ${system}, then evaluate ${method} against ${outcome} as the main metric.`;
+  return `${action} a small ${dataSource} for ${system}, then evaluate ${method} against ${outcome} as the main metric.`;
 }
 
 function buildBenchmarkExperiment(system: string, materialOrDataset: string, outcome: string): string {
@@ -994,9 +1203,9 @@ function buildValidationExperiment(method: string, system: string, materialOrDat
 
 function datasetForMethod(method: string): string {
   const normalized = normalizeTitle(method);
-  if (normalized.includes("cfd")) return "CFD cases";
+  if (normalized.includes("cfd") || normalized.includes("surrogate")) return "CFD dataset";
   if (normalized.includes("fatigue")) return "fatigue test data";
-  if (normalized.includes("thermal")) return "sensor logs";
+  if (normalized.includes("thermal")) return "simulation dataset";
   return "simulation cases";
 }
 
@@ -1012,16 +1221,6 @@ function isClusterLabelParaphrase(title: string, clusters: TopicCluster[]): bool
     if (!label) return false;
     return normalizedTitle === label || (normalizedTitle.includes(label) && wordCount(title) <= wordCount(cluster.label) + 3);
   });
-}
-
-function projectComboKey(ingredients: ProjectIngredients): string {
-  return [
-    ingredients.methods[0] ?? "",
-    ingredients.systems[0] ?? ingredients.applications[0] ?? "",
-    ingredients.outcomes[0] ?? ""
-  ]
-    .map(normalizeTitle)
-    .join("|");
 }
 
 function countTrue(values: boolean[]): number {
