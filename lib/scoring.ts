@@ -42,13 +42,25 @@ const ACTION_VERBS = ["generate", "compare", "build", "test", "measure", "simula
 const GENERIC_PROJECT_BRIDGES = new Set(["analysis", "application", "approach", "design", "engineering", "method", "model", "modeling", "optimization", "performance", "study", "system"]);
 const ACOUSTIC_EVIDENCE_TERMS = ["noise", "aeroacoustic", "aeroacoustics", "sound pressure", "spl", "acoustic", "sound level"];
 const SENSOR_EVIDENCE_TERMS = ["sensor", "sensors", "measurement", "measurements", "monitoring", "bas", "bms", "building data"];
+const SAFETY_EVIDENCE_TERMS = ["thermal runaway", "abuse", "safety", "failure risk", "hazard", "overcharge"];
 const PHYSICAL_OUTCOME_EVIDENCE: Array<{ outcome: string; terms: string[] }> = [
   { outcome: "pressure drop reduction", terms: ["pressure drop", "pressure loss", "static pressure"] },
   { outcome: "airflow uniformity", terms: ["airflow uniformity", "airflow distribution", "air distribution", "occupied zone", "velocity field"] },
   { outcome: "thermal comfort", terms: ["thermal comfort", "comfort", "pmv", "ppd", "occupied zone"] },
   { outcome: "ventilation effectiveness", terms: ["ventilation effectiveness", "air change", "fresh air", "ventilation rate"] },
   { outcome: "energy use reduction", terms: ["energy use", "energy consumption", "fan power", "energy efficiency"] },
-  { outcome: "occupied-zone velocity", terms: ["occupied-zone velocity", "occupied zone velocity", "airspeed", "air speed"] }
+  { outcome: "occupied-zone velocity", terms: ["occupied-zone velocity", "occupied zone velocity", "airspeed", "air speed"] },
+  { outcome: "heat generation", terms: ["heat generation", "heat rate", "heat flux"] },
+  { outcome: "peak cell temperature", terms: ["peak cell temperature", "maximum temperature", "cell temperature"] },
+  { outcome: "thermal runaway risk", terms: ["thermal runaway", "abuse", "safety"] },
+  { outcome: "grip force", terms: ["grip force", "grasp force", "contact force"] },
+  { outcome: "manipulation success", terms: ["manipulation success", "grasp success", "success rate"] },
+  { outcome: "disturbance rejection", terms: ["disturbance rejection", "disturbance", "step disturbance"] },
+  { outcome: "delamination growth", terms: ["delamination growth", "delamination", "crack growth"] },
+  { outcome: "stiffness-to-weight", terms: ["stiffness-to-weight", "specific stiffness", "lightweight"] },
+  { outcome: "surface roughness", terms: ["surface roughness", "roughness", "surface finish"] },
+  { outcome: "defect rate", terms: ["defect rate", "defect", "porosity"] },
+  { outcome: "print strength", terms: ["print strength", "tensile strength", "mechanical strength"] }
 ];
 
 const STOP_WORDS = new Set([
@@ -489,11 +501,22 @@ const PROJECT_VOCABULARY: Record<ProjectVocabularyCategory, ProjectVocabularyEnt
     entry("thermal comfort", ["thermal comfort", "occupied zone", "pmv", "ppd"]),
     entry("ventilation effectiveness", ["ventilation effectiveness", "air change", "ventilation rate"]),
     entry("temperature uniformity", ["temperature uniformity", "thermal uniformity", "temperature distribution"]),
+    entry("heat generation", ["heat generation", "heat rate", "heat flux"]),
+    entry("peak cell temperature", ["peak cell temperature", "cell temperature", "maximum temperature"]),
+    entry("thermal runaway risk", ["thermal runaway", "abuse", "battery safety"]),
+    entry("grip force", ["grip force", "grasp force", "contact force"]),
+    entry("manipulation success", ["manipulation success", "grasp success", "success rate"]),
     entry("fatigue life prediction", ["fatigue life", "life prediction", "crack initiation"]),
+    entry("delamination growth", ["delamination growth", "delamination", "crack growth"]),
+    entry("stiffness-to-weight", ["stiffness-to-weight", "specific stiffness", "lightweight"]),
     entry("tracking error reduction", ["tracking error", "trajectory tracking", "position error"]),
+    entry("disturbance rejection", ["disturbance rejection", "disturbance"]),
     entry("efficiency improvement", ["efficiency", "energy efficiency", "performance improvement"]),
     entry("vibration reduction", ["vibration", "vibration reduction", "modal"]),
     entry("noise reduction", ["noise", "acoustic", "sound pressure"]),
+    entry("surface roughness", ["surface roughness", "roughness", "surface finish"]),
+    entry("defect rate", ["defect rate", "defect", "porosity"]),
+    entry("print strength", ["print strength", "tensile strength", "mechanical strength"]),
     entry("prediction accuracy", ["prediction accuracy", "rmse", "error prediction"])
   ],
   materialsOrDatasets: [
@@ -542,8 +565,13 @@ function extractProjectIngredients(cluster: TopicCluster, supportingWorks: Norma
   if (!ingredients.systems.length && cluster.label) {
     ingredients.systems = [readableClusterSystem(cluster.label)];
   }
+  ingredients.outcomes = constrainOutcomesForSystem(ingredients.outcomes, ingredients.systems[0] ?? ingredients.applications[0] ?? "");
   if (!ingredients.outcomes.length) {
     ingredients.outcomes = [supportedPhysicalOutcome(text) ?? "model benchmark error"];
+  }
+  ingredients.outcomes = constrainOutcomesForSystem(ingredients.outcomes, ingredients.systems[0] ?? ingredients.applications[0] ?? "");
+  if (!ingredients.outcomes.length) {
+    ingredients.outcomes = defaultOutcomesForSystem(systemFamily(ingredients.systems[0] ?? ingredients.applications[0] ?? ""), text, []).slice(0, 1);
   }
   if (!ingredients.materialsOrDatasets.length && (ingredients.methods.includes("CFD validation") || textMentions(text, ["cfd", "computational fluid dynamics", "flow simulation"]))) {
     ingredients.materialsOrDatasets = ["CFD dataset"];
@@ -608,6 +636,9 @@ function hasPhysicalOutcomeEvidence(outcome: string, evidenceText: string): bool
   if (family === "noise") {
     return hasAcousticEvidence(evidenceText);
   }
+  if (family === "safety" || family === "failure-growth") {
+    return requiresSpecialSafetyEvidence(family, evidenceText);
+  }
   if (family === "model-metric" || family === "vague-efficiency") {
     return false;
   }
@@ -622,6 +653,16 @@ function hasSensorEvidence(text: string): boolean {
   return textMentions(text, SENSOR_EVIDENCE_TERMS);
 }
 
+function requiresSpecialSafetyEvidence(outcomeFamilyName: string, evidenceText: string): boolean {
+  if (outcomeFamilyName === "safety") {
+    return textMentions(evidenceText, SAFETY_EVIDENCE_TERMS);
+  }
+  if (outcomeFamilyName === "failure-growth") {
+    return textMentions(evidenceText, ["delamination", "crack growth", "fracture", "failure", "damage growth"]);
+  }
+  return false;
+}
+
 function textMentions(text: string, terms: string[]): boolean {
   const normalized = normalizeTitle(text);
   return terms.some((term) => normalized.includes(normalizeTitle(term)));
@@ -632,10 +673,16 @@ function outcomeFamily(outcome: string): string {
   if (normalized.includes("prediction accuracy") || normalized.includes("rmse") || normalized.includes("model benchmark")) return "model-metric";
   if (normalized.includes("efficiency")) return "vague-efficiency";
   if (normalized.includes("noise") || normalized.includes("acoustic") || normalized.includes("sound")) return "noise";
+  if (normalized.includes("thermal runaway") || normalized.includes("safety") || normalized.includes("risk")) return "safety";
+  if (normalized.includes("delamination") || normalized.includes("crack growth")) return "failure-growth";
+  if (normalized.includes("stiffness")) return "structural";
+  if (normalized.includes("grip") || normalized.includes("manipulation")) return "manipulation";
+  if (normalized.includes("disturbance") || normalized.includes("tracking") || normalized.includes("position error")) return "control-disturbance";
   if (normalized.includes("pressure")) return "pressure";
   if (normalized.includes("airflow") || normalized.includes("velocity") || normalized.includes("ventilation")) return "airflow";
-  if (normalized.includes("thermal") || normalized.includes("temperature") || normalized.includes("comfort")) return "thermal";
+  if (normalized.includes("thermal") || normalized.includes("temperature") || normalized.includes("comfort") || normalized.includes("heat generation") || normalized.includes("peak cell")) return "thermal";
   if (normalized.includes("fatigue")) return "fatigue";
+  if (normalized.includes("surface") || normalized.includes("defect") || normalized.includes("print strength")) return "manufacturing-quality";
   return normalized;
 }
 
@@ -644,6 +691,9 @@ function methodFamily(method: string): string {
   if (normalized.includes("surrogate") || normalized.includes("machine learning") || normalized.includes("neural")) return "surrogate-modeling";
   if (normalized.includes("cfd")) return "cfd";
   if (normalized.includes("thermal")) return "thermal-modeling";
+  if (normalized.includes("pid") || normalized.includes("control")) return "pid-control";
+  if (normalized.includes("topology")) return "topology-optimization";
+  if (normalized.includes("experimental") || normalized.includes("validation")) return "experimental-validation";
   if (normalized.includes("benchmark")) return "benchmarking";
   if (normalized.includes("fatigue")) return "fatigue-testing";
   return normalized;
@@ -655,7 +705,33 @@ function systemFamily(system: string): string {
   if (normalized.includes("battery") || normalized.includes("cell")) return "battery-pack";
   if (normalized.includes("cooling plate") || normalized.includes("cold plate")) return "cooling-plate";
   if (normalized.includes("gripper") || normalized.includes("robot")) return "robotic-gripper";
+  if (normalized.includes("composite") || normalized.includes("laminate")) return "composite-laminate";
+  if (normalized.includes("motor") || normalized.includes("drive")) return "motor-drive";
+  if (normalized.includes("heat exchanger")) return "heat-exchanger";
+  if (normalized.includes("pump") || normalized.includes("impeller")) return "pump";
+  if (normalized.includes("bearing")) return "bearing";
+  if (normalized.includes("gear")) return "gear-train";
+  if (normalized.includes("additive") || normalized.includes("manufacturing") || normalized.includes("print")) return "additive-manufacturing";
+  if (normalized.includes("engineering system")) return "generic-engineering-system";
   return normalized;
+}
+
+function constrainOutcomesForSystem(outcomes: string[], system: string): string[] {
+  const systemName = systemFamily(system);
+  const allowedFamilies: Record<string, string[]> = {
+    "hvac-diffuser": ["pressure", "airflow", "thermal", "model-metric", "vague-efficiency", "noise"],
+    "battery-pack": ["thermal", "safety", "model-metric", "vague-efficiency"],
+    "cooling-plate": ["thermal", "safety", "model-metric", "vague-efficiency"],
+    "robotic-gripper": ["manipulation", "control-disturbance", "model-metric"],
+    "composite-laminate": ["fatigue", "failure-growth", "structural", "model-metric"],
+    "motor-drive": ["control-disturbance", "vague-efficiency", "model-metric"],
+    "heat-exchanger": ["pressure", "thermal", "airflow", "vague-efficiency", "model-metric"],
+    pump: ["pressure", "airflow", "vague-efficiency", "model-metric"],
+    "additive-manufacturing": ["manufacturing-quality", "model-metric"]
+  };
+  const allowed = allowedFamilies[systemName];
+  if (!allowed) return outcomes;
+  return outcomes.filter((outcome) => allowed.includes(outcomeFamily(outcome)));
 }
 
 function readableClusterSystem(label: string): string {
@@ -728,7 +804,7 @@ function generateProjectCandidates(input: {
     order: 1
   });
 
-  const validationTitle = titleCase(["Validate", method, "for", system].filter(Boolean).join(" "));
+  const validationTitle = validationProjectTitle(method, system, outcome);
   const validation = candidateFromParts({
     title: validationTitle,
     description: `Use ${clusterLabel.toLowerCase()} papers to validate whether ${method} transfers to a constrained ${system} case.`,
@@ -754,6 +830,16 @@ function candidateFromParts(candidate: ProjectCandidate): ProjectCandidate {
     title: trimProjectTitle(candidate.title),
     firstExperiment: candidate.firstExperiment.trim()
   };
+}
+
+function validationProjectTitle(method: string, system: string, outcome: string): string {
+  if (methodFamily(method) === "experimental-validation") {
+    return titleCase(["Validate", system, outcome, "baseline"].filter(Boolean).join(" "));
+  }
+  if (method.toLowerCase().includes("validation")) {
+    return titleCase(["Replicate", system, outcome, "baseline"].filter(Boolean).join(" "));
+  }
+  return titleCase(["Validate", method, "for", system].filter(Boolean).join(" "));
 }
 
 function generateCrossClusterProjectCandidates(
@@ -908,6 +994,7 @@ function dedupeAndTakeTopProjectIdeas(candidates: ScoredProjectCandidate[], coun
 
   const conceptWinners = Array.from(grouped.values()).map((group) => mergeOutcomeSwapVariants(group));
 
+  const seenTitles = new Set<string>();
   return conceptWinners
     .slice()
     .sort((a, b) => {
@@ -915,6 +1002,12 @@ function dedupeAndTakeTopProjectIdeas(candidates: ScoredProjectCandidate[], coun
       if (b.evidenceScore !== a.evidenceScore) return b.evidenceScore - a.evidenceScore;
       if (b.specificityScore !== a.specificityScore) return b.specificityScore - a.specificityScore;
       return a.order - b.order;
+    })
+    .filter((candidate) => {
+      const titleKey = normalizeTitle(candidate.title);
+      if (seenTitles.has(titleKey)) return false;
+      seenTitles.add(titleKey);
+      return true;
     })
     .slice(0, count)
     .map(projectIdeaFromCandidate);
@@ -927,9 +1020,8 @@ function mergeOutcomeSwapVariants(group: ScoredProjectCandidate[]): ScoredProjec
     return a.order - b.order;
   });
   const best = sorted[0];
-  const concept = projectConceptKey(best);
 
-  if (group.length <= 1 || concept !== "surrogate-modeling|hvac-diffuser") {
+  if (group.length <= 1 || !areOutcomesMergeable(group)) {
     return best;
   }
 
@@ -937,18 +1029,22 @@ function mergeOutcomeSwapVariants(group: ScoredProjectCandidate[]): ScoredProjec
   const clusters = uniqueClusters(group.flatMap((candidate) => candidate.clusters));
   const supportingReferenceIds = uniqueTokens(group.flatMap((candidate) => candidate.supportingReferenceIds));
   const ingredients = mergeManyProjectIngredients(group.map((candidate) => candidate.ingredients));
+  const mergedOutcomes = defaultOutcomesForSystem(systemFamily(best.ingredients.systems[0] ?? best.ingredients.applications[0] ?? ""), groupEvidenceText(group), ingredients.outcomes);
+  const mergedDataSource = mergedDataSourceForConcept(best, ingredients);
+  const mergedMethod = ingredients.methods[0] ?? best.ingredients.methods[0] ?? "modeling";
+  const mergedSystem = ingredients.systems[0] ?? best.ingredients.systems[0] ?? best.ingredients.applications[0] ?? "engineering system";
   const merged: ScoredProjectCandidate = {
     ...best,
-    title: "Multi-objective Surrogate Modeling For HVAC Diffuser Performance",
-    description: "Build one surrogate-modeling project around HVAC diffuser geometry and evaluate multiple physical performance outputs instead of separate metric-swap variants.",
-    firstExperiment: "Generate a small CFD dataset varying diffuser angle, inlet velocity, and room layout, then train surrogate models to predict pressure drop, airflow uniformity, and thermal comfort.",
-    projectType: "modeling",
+    title: mergedConceptTitle(mergedMethod, mergedSystem),
+    description: `Build one ${mergedMethod} project around ${mergedSystem} and evaluate multiple compatible performance outputs instead of separate metric-swap variants.`,
+    firstExperiment: mergedConceptExperiment(mergedMethod, mergedSystem, mergedOutcomes, mergedDataSource),
+    projectType: best.projectType,
     ingredients: {
       ...ingredients,
-      methods: uniqueTokens(["surrogate modeling", ...ingredients.methods]),
-      systems: uniqueTokens(["HVAC diffuser", ...ingredients.systems]),
-      outcomes: uniqueTokens(["pressure drop reduction", "airflow uniformity", "thermal comfort", ...ingredients.outcomes.filter((outcome) => outcomeFamily(outcome) !== "model-metric" && outcomeFamily(outcome) !== "noise")]),
-      materialsOrDatasets: uniqueTokens(["CFD dataset", ...ingredients.materialsOrDatasets.filter((item) => item !== "sensor logs")])
+      methods: uniqueTokens([mergedMethod, ...ingredients.methods]),
+      systems: uniqueTokens([mergedSystem, ...ingredients.systems]),
+      outcomes: mergedOutcomes,
+      materialsOrDatasets: uniqueTokens([mergedDataSource, ...ingredients.materialsOrDatasets.filter((item) => item !== "sensor logs" || hasSensorEvidence(groupEvidenceText(group)))])
     },
     clusters,
     supportingWorks,
@@ -965,6 +1061,127 @@ function mergeOutcomeSwapVariants(group: ScoredProjectCandidate[]): ScoredProjec
     distinctivenessSignals: uniqueTokens(["multi-objective physical outcomes", ...group.flatMap((candidate) => candidate.distinctivenessSignals)]).filter((signal) => !/novel|original/i.test(signal))
   };
   return merged;
+}
+
+function areOutcomesMergeable(group: ScoredProjectCandidate[]): boolean {
+  const best = group[0];
+  const key = projectConceptKey(best);
+  const [methodName, systemName] = key.split("|");
+  if (!methodName || !systemName || systemName === "generic-engineering-system") {
+    return false;
+  }
+  const evidenceText = groupEvidenceText(group);
+  const outcomeFamilies = uniqueTokens(group.flatMap((candidate) => candidate.ingredients.outcomes.map(outcomeFamily)));
+  const physicalFamilies = outcomeFamilies.filter((family) => !["model-metric", "vague-efficiency"].includes(family));
+  if (physicalFamilies.length < 2) {
+    return group.length > 1 && outcomesShareExperimentPath(systemName, methodName, physicalFamilies, evidenceText);
+  }
+  return (
+    outcomesShareExperimentPath(systemName, methodName, physicalFamilies, evidenceText) &&
+    !requiresDistinctPhysics(systemName, methodName, physicalFamilies) &&
+    !requiresDistinctDataSource(systemName, methodName, physicalFamilies) &&
+    !physicalFamilies.some((family) => requiresSpecialSafetyEvidence(family, evidenceText) && !outcomesShareExperimentPath(systemName, methodName, [family], evidenceText))
+  );
+}
+
+function outcomesShareExperimentPath(systemName: string, methodName: string, outcomeFamilies: string[], evidenceText: string): boolean {
+  if (outcomeFamilies.includes("noise") && !hasAcousticEvidence(evidenceText)) return false;
+  if (outcomeFamilies.includes("safety")) return false;
+  if (systemName === "hvac-diffuser") return outcomeFamilies.every((family) => ["pressure", "airflow", "thermal", "model-metric", "vague-efficiency"].includes(family));
+  if (systemName === "battery-pack" || systemName === "cooling-plate") return outcomeFamilies.every((family) => ["thermal", "model-metric", "vague-efficiency"].includes(family));
+  if (systemName === "robotic-gripper") return outcomeFamilies.every((family) => ["manipulation", "control-disturbance", "model-metric", "vague-efficiency"].includes(family));
+  if (systemName === "motor-drive") return outcomeFamilies.every((family) => ["control-disturbance", "vague-efficiency", "model-metric"].includes(family));
+  if (systemName === "composite-laminate") {
+    return methodName.includes("fatigue") && outcomeFamilies.every((family) => ["fatigue", "failure-growth"].includes(family)) && textMentions(evidenceText, ["fatigue", "delamination", "crack"]);
+  }
+  if (systemName === "pump" || systemName === "heat-exchanger") return outcomeFamilies.every((family) => ["pressure", "airflow", "thermal", "vague-efficiency"].includes(family));
+  if (systemName === "additive-manufacturing") return outcomeFamilies.every((family) => ["manufacturing-quality", "model-metric"].includes(family));
+  return false;
+}
+
+function requiresDistinctPhysics(systemName: string, methodName: string, outcomeFamilies: string[]): boolean {
+  if (outcomeFamilies.includes("noise")) return true;
+  if (outcomeFamilies.includes("safety")) return true;
+  if (systemName === "composite-laminate" && outcomeFamilies.includes("structural") && outcomeFamilies.includes("fatigue")) return true;
+  return methodName === "pid-control" && outcomeFamilies.includes("vague-efficiency") && !outcomeFamilies.includes("control-disturbance");
+}
+
+function requiresDistinctDataSource(systemName: string, methodName: string, outcomeFamilies: string[]): boolean {
+  if (systemName === "composite-laminate" && outcomeFamilies.includes("structural") && outcomeFamilies.includes("failure-growth")) return true;
+  return methodName === "benchmarking" && outcomeFamilies.includes("manufacturing-quality") && outcomeFamilies.includes("thermal");
+}
+
+function mergedConceptTitle(method: string, system: string): string {
+  const methodName = methodFamily(method);
+  const systemName = systemFamily(system);
+  if (systemName === "hvac-diffuser") return "Multi-objective Surrogate Modeling For HVAC Diffuser Airflow Performance";
+  if ((systemName === "battery-pack" || systemName === "cooling-plate") && ["thermal-modeling", "cfd"].includes(methodName)) return "Multi-objective Thermal Modeling For Battery Pack Cooling Performance";
+  if (systemName === "robotic-gripper" && ["pid-control", "benchmarking"].includes(methodName)) return "Multi-objective Force-control Benchmarking For Robotic Gripper Manipulation";
+  if (systemName === "composite-laminate" && methodName === "fatigue-testing") return "Multi-objective Fatigue Modeling For Composite Laminate Durability";
+  if (systemName === "motor-drive" && methodName === "pid-control") return "Multi-objective PID Control Benchmarking For Motor-drive Response";
+  return titleCase(`Multi-objective ${methodName.replace(/-/g, " ")} for ${system} performance`);
+}
+
+function mergedConceptExperiment(method: string, system: string, outcomes: string[], dataSource: string): string {
+  const systemName = systemFamily(system);
+  const outcomeText = readableList(outcomes.slice(0, 3));
+  if (systemName === "hvac-diffuser") return "Generate a small CFD dataset varying diffuser angle, inlet velocity, and room layout, then train surrogate models to predict pressure drop, airflow uniformity, and thermal comfort.";
+  if (systemName === "battery-pack" || systemName === "cooling-plate") return "Generate a small thermal simulation dataset varying cooling-channel geometry and heat generation rate, then evaluate thermal models against temperature uniformity and peak cell temperature.";
+  if (systemName === "robotic-gripper") return "Build or simulate gripper trials varying object size and grip force, then compare control methods using tracking error and manipulation success rate.";
+  if (systemName === "composite-laminate") return "Analyze composite laminate fatigue data varying ply orientation and load level, then compare models using fatigue life and delamination-growth error.";
+  if (systemName === "motor-drive") return "Benchmark motor-drive control using reference trajectory and disturbance-input tests, then compare tracking error and disturbance rejection.";
+  return `Generate a small ${dataSource} varying ${designVariablesForSystem(systemName)}, then evaluate ${method} against ${outcomeText}.`;
+}
+
+function designVariablesForSystem(systemName: string): string {
+  if (systemName === "pump") return "impeller geometry, flow rate, and operating speed";
+  if (systemName === "heat-exchanger") return "channel geometry, inlet temperature, and flow rate";
+  if (systemName === "additive-manufacturing") return "process parameters, scan speed, and layer thickness";
+  if (systemName === "bearing") return "load, speed, and lubrication condition";
+  if (systemName === "gear-train") return "load, speed, and gear geometry";
+  return "the most important geometry and operating variables";
+}
+
+function defaultOutcomesForSystem(systemName: string, evidenceText: string, detectedOutcomes: string[]): string[] {
+  const candidates: Record<string, string[]> = {
+    "hvac-diffuser": ["pressure drop reduction", "airflow uniformity", "thermal comfort"],
+    "battery-pack": ["temperature uniformity", "heat generation", "peak cell temperature"],
+    "cooling-plate": ["temperature uniformity", "heat generation", "peak cell temperature"],
+    "robotic-gripper": ["grip force", "tracking error reduction", "manipulation success"],
+    "composite-laminate": ["fatigue life prediction", "delamination growth"],
+    "motor-drive": ["tracking error reduction", "disturbance rejection", "energy use reduction"],
+    "pump": ["pressure drop reduction", "flow uniformity", "energy use reduction"],
+    "heat-exchanger": ["pressure drop reduction", "thermal comfort", "temperature uniformity"],
+    "additive-manufacturing": ["defect rate", "surface roughness", "print strength"]
+  };
+  const defaults = candidates[systemName] ?? [];
+  const supportedDefaults = defaults.filter((outcome) => hasPhysicalOutcomeEvidence(outcome, evidenceText));
+  const safeDetected = detectedOutcomes.filter((outcome) => !["model-metric", "vague-efficiency", "noise", "safety", "structural"].includes(outcomeFamily(outcome)));
+  return uniqueTokens([...supportedDefaults, ...safeDetected]).slice(0, 3);
+}
+
+function mergedDataSourceForConcept(best: ProjectCandidate, ingredients: ProjectIngredients): string {
+  const systemName = systemFamily(ingredients.systems[0] ?? best.ingredients.systems[0] ?? "");
+  if (systemName === "hvac-diffuser") return "CFD dataset";
+  if (systemName === "battery-pack" || systemName === "cooling-plate") return "thermal simulation dataset";
+  if (systemName === "robotic-gripper") return "gripper trial dataset";
+  if (systemName === "composite-laminate") return "fatigue test dataset";
+  if (systemName === "motor-drive") return "control benchmark dataset";
+  if (systemName === "heat-exchanger") return "thermal simulation dataset";
+  if (systemName === "pump") return "flow simulation dataset";
+  if (systemName === "additive-manufacturing") return "process parameter dataset";
+  return ingredients.materialsOrDatasets[0] ?? "simulation dataset";
+}
+
+function groupEvidenceText(group: ScoredProjectCandidate[]): string {
+  return group.flatMap((candidate) => candidate.supportingWorks.map((work) => work.compactText)).join(" ");
+}
+
+function readableList(items: string[]): string {
+  if (!items.length) return "measurable performance outputs";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
 }
 
 function projectIdeaFromCandidate(candidate: ScoredProjectCandidate): ProjectIdea {
@@ -1190,7 +1407,7 @@ function projectTypeFor(method: string, system: string, materialOrDataset: strin
 function buildFirstExperiment(method: string, system: string, materialOrDataset: string, outcome: string): string {
   const action = method.includes("surrogate") ? "Generate" : method.includes("benchmark") ? "Compare" : method.includes("testing") ? "Test" : "Simulate";
   const dataSource = materialOrDataset || datasetForMethod(method);
-  return `${action} a small ${dataSource} for ${system}, then evaluate ${method} against ${outcome} as the main metric.`;
+  return `${action} a small ${datasetPhrase(dataSource)} for ${system}, then evaluate ${method} against ${outcome} as the main metric.`;
 }
 
 function buildBenchmarkExperiment(system: string, materialOrDataset: string, outcome: string): string {
@@ -1198,6 +1415,9 @@ function buildBenchmarkExperiment(system: string, materialOrDataset: string, out
 }
 
 function buildValidationExperiment(method: string, system: string, materialOrDataset: string, outcome: string): string {
+  if (method.toLowerCase().includes("validation")) {
+    return `Validate one ${system} case using ${materialOrDataset || "paper data"} and measure ${outcome} against a baseline.`;
+  }
   return `Validate ${method} on one ${system} case using ${materialOrDataset || "paper data"} and measure ${outcome} against a baseline.`;
 }
 
@@ -1207,6 +1427,20 @@ function datasetForMethod(method: string): string {
   if (normalized.includes("fatigue")) return "fatigue test data";
   if (normalized.includes("thermal")) return "simulation dataset";
   return "simulation cases";
+}
+
+function datasetPhrase(dataSource: string): string {
+  const normalized = normalizeTitle(dataSource);
+  if (/(dataset|data|cases|logs)$/.test(normalized)) {
+    return dataSource;
+  }
+  if (normalized.includes("cells")) {
+    return `${dataSource} dataset`;
+  }
+  if (normalized.includes("materials")) {
+    return `${dataSource} dataset`;
+  }
+  return `${dataSource} dataset`;
 }
 
 function trimProjectTitle(title: string): string {

@@ -391,11 +391,130 @@ describe("project idea synthesis", () => {
     const hvacIdeas = ideas.filter((idea) => idea.projectIngredients?.systems.includes("HVAC diffuser"));
 
     expect(hvacIdeas).toHaveLength(1);
-    expect(hvacIdeas[0].title).toBe("Multi-objective Surrogate Modeling For HVAC Diffuser Performance");
+    expect(hvacIdeas[0].title).toBe("Multi-objective Surrogate Modeling For HVAC Diffuser Airflow Performance");
     expect(hvacIdeas[0].firstExperiment).toContain("Generate a small CFD dataset");
     expect(hvacIdeas[0].firstExperiment).not.toContain("CFD cases set");
     expect(hvacIdeas[0].firstExperiment).not.toContain("sensor logs");
     expect(ideas.map((idea) => idea.title).join(" ")).not.toMatch(/prediction accuracy|noise reduction/i);
+  });
+
+  it("collapses battery thermal outcome swaps into one cooling-performance concept", () => {
+    const works = [
+      "Thermal modeling for battery pack temperature uniformity",
+      "Thermal modeling for battery pack heat generation",
+      "Thermal modeling for battery pack peak cell temperature"
+    ].map((title, index) => ({
+      ...scoredWorks(1, 0.76)[0],
+      id: `battery-${index}`,
+      title,
+      normalizedTitle: title.toLowerCase(),
+      compactText: `${title}. Thermal simulation cooling-channel geometry heat generation rate cell temperature temperature uniformity.`,
+      recentInfluenceScore: 0.8,
+      graphSupportScore: 0.35
+    }));
+    const ideas = buildProjectIdeas(
+      { ...request, topic: "battery thermal management" },
+      works.map((item, index) => ({
+        ...cluster(`battery-c${index}`, "Battery pack thermal modeling", 1, 1, 0.8, 0.76),
+        paperIds: [item.id]
+      })),
+      works,
+      citationSignals,
+      focusedQuery
+    );
+
+    expect(ideas[0].title).toBe("Multi-objective Thermal Modeling For Battery Pack Cooling Performance");
+    expect(ideas[0].firstExperiment).toContain("thermal simulation dataset");
+  });
+
+  it("does not merge battery thermal runaway into normal cooling without safety evidence", () => {
+    const works = [
+      "Thermal modeling for battery pack temperature uniformity",
+      "Thermal modeling for battery pack heat generation",
+      "Thermal modeling for battery pack thermal runaway risk"
+    ].map((title, index) => ({
+      ...scoredWorks(1, 0.76)[0],
+      id: `battery-risk-${index}`,
+      title,
+      normalizedTitle: title.toLowerCase(),
+      compactText: index === 2
+        ? "Thermal modeling for battery pack high temperature under fast charging."
+        : `${title}. Thermal simulation cooling-channel geometry heat generation rate cell temperature.`,
+      recentInfluenceScore: 0.8,
+      graphSupportScore: 0.35
+    }));
+    const ideas = buildProjectIdeas(
+      { ...request, topic: "battery thermal management" },
+      works.map((item, index) => ({
+        ...cluster(`battery-risk-c${index}`, "Battery pack thermal modeling", 1, 1, 0.8, 0.76),
+        paperIds: [item.id]
+      })),
+      works,
+      citationSignals,
+      focusedQuery
+    );
+
+    expect(ideas[0].title).toBe("Multi-objective Thermal Modeling For Battery Pack Cooling Performance");
+    expect(ideas[0].title).not.toMatch(/runaway/i);
+    expect(ideas[0].firstExperiment).not.toMatch(/runaway/i);
+  });
+
+  it("collapses robotic gripper control metrics into one manipulation benchmark", () => {
+    const works = [
+      "Force control for robotic gripper grip force",
+      "Force control for robotic gripper tracking error",
+      "Force control for robotic gripper manipulation success"
+    ].map((title, index) => ({
+      ...scoredWorks(1, 0.78)[0],
+      id: `gripper-${index}`,
+      title,
+      normalizedTitle: title.toLowerCase(),
+      compactText: `${title}. Gripper trials object size grip force trajectory tracking manipulation success rate.`,
+      recentInfluenceScore: 0.84,
+      graphSupportScore: 0.45
+    }));
+    const ideas = buildProjectIdeas(
+      { ...request, topic: "robotic gripper force control" },
+      works.map((item, index) => ({
+        ...cluster(`gripper-c${index}`, "Robotic gripper force control", 1, 1, 0.84, 0.78),
+        paperIds: [item.id]
+      })),
+      works,
+      citationSignals,
+      focusedQuery
+    );
+
+    expect(ideas[0].title).toBe("Multi-objective Force-control Benchmarking For Robotic Gripper Manipulation");
+    expect(ideas[0].firstExperiment).toContain("gripper trials");
+  });
+
+  it("keeps same system with different evidenced methods as separate concepts", () => {
+    const works = [
+      { title: "Surrogate modeling for battery pack temperature uniformity", topic: "Battery pack surrogate modeling" },
+      { title: "Experimental validation for battery pack temperature uniformity", topic: "Battery pack experimental validation" }
+    ].map((item, index) => ({
+      ...scoredWorks(1, 0.8)[0],
+      id: `battery-method-${index}`,
+      title: item.title,
+      normalizedTitle: item.title.toLowerCase(),
+      compactText: `${item.title}. Battery pack cell temperature thermal simulation experimental validation.`,
+      recentInfluenceScore: 0.8,
+      graphSupportScore: 0.4,
+      primaryTopic: { id: `T-method-${index}`, display_name: item.topic }
+    }));
+    const ideas = buildProjectIdeas(
+      { ...request, topic: "battery pack modeling validation" },
+      works.map((item, index) => ({
+        ...cluster(`battery-method-c${index}`, item.primaryTopic?.display_name ?? "Battery pack", 1, 1, 0.8, 0.8),
+        paperIds: [item.id]
+      })),
+      works,
+      citationSignals,
+      focusedQuery
+    );
+
+    expect(new Set(ideas.map((idea) => idea.projectIngredients?.methods[0]))).toContain("surrogate modeling");
+    expect(new Set(ideas.map((idea) => idea.projectIngredients?.methods[0]))).toContain("experimental validation");
   });
 
   it("does not create HVAC diffuser noise projects without acoustic evidence", () => {
