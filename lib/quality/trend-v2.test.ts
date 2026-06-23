@@ -11,7 +11,7 @@ function nWork(overrides: Partial<NormalizedWork> & { id: string }): NormalizedW
     year: 2023,
     publicationDate: "2023-01-01",
     citationCount: 50,
-    citationPercentile: 0.5,
+    citationPercentileValue: 0.5,
     authors: [{ id: `A_${overrides.id}`, name: `Author ${overrides.id}` }],
     primaryTopic: { id: "T1", display_name: "Topic 1" },
     topics: [],
@@ -19,8 +19,19 @@ function nWork(overrides: Partial<NormalizedWork> & { id: string }): NormalizedW
     type: "article",
     isRetracted: false,
     hasAbstract: true,
+    abstractText: "test abstract",
+    compactText: "test abstract",
+    countsByYear: [],
+    referencedWorks: [],
+    referencedWorksCount: null,
+    fwci: null,
+    citedByApiUrl: null,
     url: `https://openalex.org/${overrides.id}`,
     relevanceScore: 0.7,
+    keywordRelevanceScore: 0.7,
+    semanticRelevanceScore: null,
+    finalRelevanceScore: 0.7,
+    embeddingModel: null,
     logCitationScore: 0.5,
     citationPercentileScore: 0.5,
     citationsPerYearScore: 0.5,
@@ -29,7 +40,10 @@ function nWork(overrides: Partial<NormalizedWork> & { id: string }): NormalizedW
     foundationalScore: 0.5,
     recentInfluenceScore: 0.5,
     citationsPerYear: 10,
-    ...overrides
+    ...overrides,
+    graphSupportScore: overrides.graphSupportScore ?? 0,
+    graphSupportSeedCount: overrides.graphSupportSeedCount ?? 0,
+    graphSupportSeedTotal: overrides.graphSupportSeedTotal ?? 0
   };
 }
 

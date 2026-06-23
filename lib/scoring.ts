@@ -6,6 +6,8 @@ import type {
   DataQuality,
   EvidenceItem,
   EvidenceType,
+  ExcludedPaper,
+  JudgeSignals,
   NormalizedWork,
   OpenAlexTopic,
   OpenAlexWork,
@@ -17,11 +19,14 @@ import type {
   ResearchDirectionSummary,
   ResearcherRecommendation,
   SharedReferenceEvidence,
+  ScoreContribution,
   SummarySignal,
   TopicCluster
 } from "./types";
 import { applySemanticRelevance, blendRelevance, buildQueryText } from "./embeddings";
 import { buildCitationHistoryFromCountsByYear, fetchCitationHistoryForWorks, fetchOpenAlexWorksByIds, normalizeOpenAlexWorkId } from "./openalex";
+import { applyRelevanceJudge, type JudgeCache, type JudgeFn } from "./relevance-judge";
+import { filterByRelevance, type RelevanceSummary } from "./quality/relevance";
 import { buildQueryFocusSuggestions } from "./query-focus";
 
 const FOUNDATIONAL_LIMIT = 5;
@@ -63,6 +68,14 @@ const PHYSICAL_OUTCOME_EVIDENCE: Array<{ outcome: string; terms: string[] }> = [
   { outcome: "print strength", terms: ["print strength", "tensile strength", "mechanical strength"] }
 ];
 
+type BuildResearchMapDeps = {
+  citationHistoryFetcher?: (workIds: string[]) => Promise<Map<string, CitationHistoryResult>>;
+  referenceFetcher?: (workIds: string[]) => Promise<OpenAlexWork[]>;
+  relevanceJudge?: JudgeFn;
+  judgeCache?: JudgeCache;
+  hardFilterJudge?: boolean;
+};
+
 const STOP_WORDS = new Set([
   "a",
   "an",
@@ -88,28 +101,63 @@ const STOP_WORDS = new Set([
   "with"
 ]);
 
+function resolveBuildResearchMapDeps(
+  deps: BuildResearchMapDeps | ((workIds: string[]) => Promise<Map<string, CitationHistoryResult>>),
+  legacyReferenceFetcher: (workIds: string[]) => Promise<OpenAlexWork[]>
+): Required<Pick<BuildResearchMapDeps, "citationHistoryFetcher" | "referenceFetcher">> &
+  Pick<BuildResearchMapDeps, "relevanceJudge" | "judgeCache" | "hardFilterJudge"> {
+  if (typeof deps === "function") {
+    return {
+      citationHistoryFetcher: deps,
+      referenceFetcher: legacyReferenceFetcher,
+      relevanceJudge: undefined,
+      judgeCache: undefined,
+      hardFilterJudge: false
+    };
+  }
+
+  return {
+    citationHistoryFetcher: deps.citationHistoryFetcher ?? fetchCitationHistoryForWorks,
+    referenceFetcher: deps.referenceFetcher ?? fetchOpenAlexWorksByIds,
+    relevanceJudge: deps.relevanceJudge,
+    judgeCache: deps.judgeCache,
+    hardFilterJudge: deps.hardFilterJudge ?? false
+  };
+}
+
 export async function buildResearchMap(
   request: ResearchMapRequest,
   works: OpenAlexWork[],
-  citationHistoryFetcher = fetchCitationHistoryForWorks,
-  referenceFetcher = fetchOpenAlexWorksByIds
+  deps: BuildResearchMapDeps | ((workIds: string[]) => Promise<Map<string, CitationHistoryResult>>) = {},
+  legacyReferenceFetcher = fetchOpenAlexWorksByIds
 ): Promise<ResearchMapResponse> {
+  const resolvedDeps = resolveBuildResearchMapDeps(deps, legacyReferenceFetcher);
   const requestBudget = createRequestBudget();
   const normalizedRequest = normalizeRequest(request);
+  const preGate = filterByRelevance(normalizedRequest.topic, works);
   const normalized = normalizeWorks(normalizedRequest, works);
-  const initiallyScored = scoreWorks(normalizedRequest, normalized.works);
+  const pregatedWorks = applyPreGateSignals(normalized.works, preGate);
+  const initiallyScored = scoreWorks(normalizedRequest, pregatedWorks);
   const semantic = await applySemanticRelevance(initiallyScored, buildQueryText(normalizedRequest.topic, normalizedRequest.field, normalizedRequest.goal));
-  const scored = scoreWorks(normalizedRequest, semantic.works);
-  const clusters = buildClusters(scored);
-  const initialFoundationalWorks = scored
+  const firstPassScored = scoreWorks(normalizedRequest, semantic.works);
+  const judged = await applyRelevanceJudge(normalizedRequest, firstPassScored, {
+    judge: resolvedDeps.relevanceJudge,
+    cache: resolvedDeps.judgeCache,
+    enabled: Boolean(resolvedDeps.relevanceJudge) || undefined
+  });
+  const scored = scoreWorks(normalizedRequest, judged.works);
+  const filterResult = applyJudgeHardFilter(scored, Boolean(resolvedDeps.hardFilterJudge));
+  const usableWorks = filterResult.usableWorks;
+  const clusters = buildClusters(usableWorks);
+  const initialFoundationalWorks = usableWorks
     .slice()
-    .sort((a, b) => b.foundationalScore - a.foundationalScore)
+    .sort((a, b) => (b.rankScore ?? b.foundationalScore) - (a.rankScore ?? a.foundationalScore))
     .slice(0, FOUNDATIONAL_LIMIT);
-  const recentInfluenceWorks = scored
+  const recentInfluenceWorks = usableWorks
     .slice()
     .sort((a, b) => b.recentInfluenceScore - a.recentInfluenceScore)
     .slice(0, WATCH_NOW_LIMIT);
-  const relevanceSeedWorks = scored
+  const relevanceSeedWorks = usableWorks
     .slice()
     .sort((a, b) => b.finalRelevanceScore - a.finalRelevanceScore)
     .slice(0, RELEVANCE_SEED_LIMIT);
@@ -118,24 +166,35 @@ export async function buildResearchMap(
     dedupeWorks([...initialFoundationalWorks, ...recentInfluenceWorks, ...relevanceSeedWorks]),
     clusters,
     requestBudget,
-    referenceFetcher
+    resolvedDeps.referenceFetcher
   );
-  const graphSupported = applyGraphSupport(scored, citationNetworkSignals);
+  const graphSupported = applyGraphSupport(usableWorks, citationNetworkSignals);
   const foundationalPapers = graphSupported
     .slice()
-    .sort((a, b) => clamp01(b.foundationalScore + b.graphSupportScore) - clamp01(a.foundationalScore + a.graphSupportScore))
+    .sort((a, b) => (b.rankScore ?? b.foundationalScore) - (a.rankScore ?? a.foundationalScore))
     .slice(0, FOUNDATIONAL_LIMIT)
-    .map((work) => toPaperRecommendation(work, clamp01(work.foundationalScore + work.graphSupportScore), ["high-citation-signal", "topic-relevant"]));
-  const recentInfluencePapersWithoutHistory = recentInfluenceWorks.map((work) =>
-    toPaperRecommendation(work, work.recentInfluenceScore, ["recent-influence-proxy", "topic-relevant"])
-  );
-  const recentInfluencePapers = await enrichWithCitationHistory(recentInfluencePapersWithoutHistory, requestBudget, citationHistoryFetcher);
-  const people = buildPeople(scored, recentInfluencePapers.map((paper) => paper.id));
-  const queryFocus = buildQueryFocus(normalizedRequest, scored, clusters);
-  const projectIdeas = buildProjectIdeas(normalizedRequest, clusters, scored, citationNetworkSignals, queryFocus);
-  const confidence = computeMapConfidence(scored.length, median(scored.map((work) => work.relevanceScore)));
-  const dataQuality = buildDataQuality(works, normalized.works, normalized.dedupedCount, normalized.excludedRetractedCount);
-  const warnings = buildWarnings(dataQuality, confidence, semantic.signals.enabled);
+    .map((work) =>
+      toPaperRecommendation(
+        work,
+        work.rankScore ?? work.foundationalScore,
+        reasonCodesFromContributions(work.scoreContributions ?? foundationalContributions(work))
+      )
+    );
+  const recentInfluencePapersWithoutHistory = graphSupported
+    .slice()
+    .sort((a, b) => b.recentInfluenceScore - a.recentInfluenceScore)
+    .slice(0, WATCH_NOW_LIMIT)
+    .map((work) =>
+      toPaperRecommendation(work, work.recentInfluenceScore, reasonCodesFromContributions(recentInfluenceContributions(work)), "recent-influence")
+    );
+  const recentInfluencePapers = await enrichWithCitationHistory(recentInfluencePapersWithoutHistory, requestBudget, resolvedDeps.citationHistoryFetcher);
+  const people = buildPeople(graphSupported, recentInfluencePapers.map((paper) => paper.id));
+  const queryFocus = buildQueryFocus(normalizedRequest, graphSupported, clusters);
+  const projectIdeas = buildProjectIdeas(normalizedRequest, clusters, graphSupported, citationNetworkSignals, queryFocus);
+  const confidence = computeMapConfidence(graphSupported.length, median(graphSupported.map((work) => work.relevanceScore)));
+  const dataQuality = buildDataQuality(works, graphSupported, normalized.dedupedCount, normalized.excludedRetractedCount);
+  const judgeSignals = mergeJudgeSignals(judged.signals, filterResult.excludedPapers.length);
+  const warnings = buildWarnings(dataQuality, confidence, semantic.signals.enabled, judgeSignals);
   if (recentInfluencePapers.length && recentInfluencePapers.every((paper) => paper.citationHistoryStatus === "unavailable")) {
     warnings.push("Citation history unavailable; using citations/year proxy for Watch Now.");
   }
@@ -143,7 +202,7 @@ export async function buildResearchMap(
     warnings.push("OpenAlex request budget reached; optional citation-network or citation-history fallbacks may be incomplete.");
   }
   const evidence = buildEvidence(foundationalPapers, recentInfluencePapers, people, clusters);
-  const citationSignals = buildCitationSignals(scored, clusters, confidence);
+  const citationSignals = buildCitationSignals(graphSupported, clusters, confidence);
   const researchDirectionSummary = buildResearchDirectionSummary(clusters);
 
   return {
@@ -161,6 +220,8 @@ export async function buildResearchMap(
     },
     researchDirectionSummary,
     semanticSignals: semantic.signals,
+    judgeSignals,
+    excludedPapers: filterResult.excludedPapers,
     projectIdeas,
     evidence,
     warnings,
@@ -251,6 +312,17 @@ export function normalizeWorks(
       semanticRelevanceScore: null,
       finalRelevanceScore: 0,
       embeddingModel: null,
+      preGateScore: 1,
+      preGateCosine: null,
+      preGateCoverage: null,
+      preGateDriftDomains: [],
+      preGateReasonCodes: [],
+      judged: false,
+      judgeGrade: null,
+      judgeGradeScore: null,
+      judgeOnTopic: null,
+      judgeAbout: null,
+      judgeReason: null,
       logCitationScore: 0,
       citationPercentileScore: 0,
       citationsPerYearScore: 0,
@@ -261,6 +333,8 @@ export function normalizeWorks(
       graphSupportSeedTotal: 0,
       foundationalScore: 0,
       recentInfluenceScore: 0,
+      rankScore: 0,
+      scoreContributions: [],
       citationsPerYear: 0
     });
   });
@@ -275,6 +349,56 @@ function normalizeRequest(request: ResearchMapRequest): ResearchMapRequest {
   };
 }
 
+function applyPreGateSignals(works: NormalizedWork[], relevance: RelevanceSummary): NormalizedWork[] {
+  const byId = new Map(relevance.results.map((result) => [result.work.id, result]));
+  return works.map((work) => {
+    const result = byId.get(work.id);
+    if (!result) {
+      return work;
+    }
+    return {
+      ...work,
+      preGateScore: result.effectiveScore,
+      preGateCosine: result.cosine,
+      preGateCoverage: result.coverage,
+      preGateDriftDomains: result.driftDomains,
+      preGateReasonCodes: result.reasons
+    };
+  });
+}
+
+function applyJudgeHardFilter(
+  works: NormalizedWork[],
+  hardFilterJudge: boolean
+): { usableWorks: NormalizedWork[]; excludedPapers: ExcludedPaper[] } {
+  if (!hardFilterJudge) {
+    return { usableWorks: works, excludedPapers: [] };
+  }
+
+  const usableWorks: NormalizedWork[] = [];
+  const excludedPapers: ExcludedPaper[] = [];
+  for (const work of works) {
+    if (work.judged && work.judgeGrade === 0) {
+      excludedPapers.push({
+        id: work.id,
+        title: work.title,
+        judgeGrade: work.judgeGrade,
+        reason: work.judgeReason ?? "Judge marked this paper off-topic."
+      });
+    } else {
+      usableWorks.push(work);
+    }
+  }
+  return { usableWorks, excludedPapers };
+}
+
+function mergeJudgeSignals(signals: JudgeSignals, filteredOffTopicCount: number): JudgeSignals {
+  return {
+    ...signals,
+    filteredOffTopicCount
+  };
+}
+
 export function scoreWorks(request: ResearchMapRequest, works: NormalizedWork[]): NormalizedWork[] {
   const currentYear = new Date().getFullYear();
   const logCitations = works.map((work) => Math.log1p(work.citationCount));
@@ -285,8 +409,10 @@ export function scoreWorks(request: ResearchMapRequest, works: NormalizedWork[])
     const ageWindow = Math.max(1, request.toYear - request.fromYear);
     const normalizedAge = Math.min(1, Math.max(0, (request.toYear - work.year) / ageWindow));
     const citationPercentileScore = clamp01(work.citationPercentileValue ?? localCitationPercentiles[index] ?? 0);
-    const finalRelevanceScore = blendRelevance(work.keywordRelevanceScore || work.relevanceScore, work.semanticRelevanceScore, citationPercentileScore);
-    const scored = {
+    const relevanceBeforePreGate = blendRelevance(work.keywordRelevanceScore || work.relevanceScore, work.semanticRelevanceScore, work.judgeGradeScore ?? null);
+    const preGateDemotion = (work.preGateDriftDomains ?? []).length ? 0.85 : 1;
+    const finalRelevanceScore = clamp01(relevanceBeforePreGate * preGateDemotion);
+    const scored: NormalizedWork = {
       ...work,
       finalRelevanceScore,
       relevanceScore: finalRelevanceScore,
@@ -298,16 +424,63 @@ export function scoreWorks(request: ResearchMapRequest, works: NormalizedWork[])
     };
     scored.foundationalScore =
       0.4 * scored.logCitationScore +
-      0.25 * scored.citationPercentileScore +
-      0.25 * scored.finalRelevanceScore +
+      0.3 * scored.citationPercentileScore +
+      0.2 * scored.finalRelevanceScore +
       0.1 * scored.sourceQualityScore;
     scored.recentInfluenceScore =
       0.3 * scored.citationsPerYearScore +
       0.25 * scored.recencyScore +
       0.3 * scored.finalRelevanceScore +
       0.15 * scored.citationPercentileScore;
+    scored.rankScore = scored.foundationalScore + scored.graphSupportScore;
+    scored.scoreContributions = foundationalContributions(scored);
     return scored;
   });
+}
+
+function foundationalContributions(work: NormalizedWork): ScoreContribution[] {
+  return [
+    contribution("citation-mass", "Citation mass", 0.4 * work.logCitationScore),
+    contribution("citation-percentile", "Citation percentile", 0.3 * work.citationPercentileScore),
+    contribution("topic-aboutness", "Topic aboutness", 0.2 * work.finalRelevanceScore),
+    contribution("source-quality", "Source quality", 0.1 * work.sourceQualityScore),
+    contribution("graph-support", "Shared-reference graph support", work.graphSupportScore)
+  ].filter((item) => item.value > 0);
+}
+
+function recentInfluenceContributions(work: NormalizedWork): ScoreContribution[] {
+  return [
+    contribution("citations-per-year", "Citations per year", 0.3 * work.citationsPerYearScore),
+    contribution("recency", "Publication recency", 0.25 * work.recencyScore),
+    contribution("topic-aboutness", "Topic aboutness", 0.3 * work.finalRelevanceScore),
+    contribution("citation-percentile", "Citation percentile", 0.15 * work.citationPercentileScore)
+  ].filter((item) => item.value > 0);
+}
+
+function contribution(code: string, label: string, value: number): ScoreContribution {
+  return {
+    code,
+    label,
+    value: Number(value.toFixed(6))
+  };
+}
+
+function reasonCodesFromContributions(contributions: ScoreContribution[]): string[] {
+  const codes = contributions
+    .slice()
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 3)
+    .map((item) => item.code);
+  return codes.length ? codes : ["insufficient-score-signal"];
+}
+
+function appendDiagnosticReasonCodes(reasonCodes: string[], work: NormalizedWork): string[] {
+  return uniqueTokens([
+    ...reasonCodes,
+    ...(work.preGateDriftDomains ?? []).length ? ["pre-gate-drift-demotion"] : [],
+    ...(work.judged ? [`judge-grade-${work.judgeGrade}`] : []),
+    !work.hasAbstract ? "unverified-no-abstract" : ""
+  ]);
 }
 
 export function buildClusters(works: NormalizedWork[]): TopicCluster[] {
@@ -1722,13 +1895,17 @@ async function buildCitationNetworkSignals(
 function applyGraphSupport(works: NormalizedWork[], signals: CitationNetworkSignals): NormalizedWork[] {
   const referenceByShortId = new Map(signals.topSharedReferences.map((reference) => [normalizeOpenAlexWorkId(reference.id), reference]));
   return works.map((work) => {
+    const graphSupportSeedTotal = signals.seedPaperCount;
     const reference = referenceByShortId.get(normalizeOpenAlexWorkId(work.id));
     if (!reference) {
+      const rankScore = work.foundationalScore;
       return {
         ...work,
         graphSupportScore: 0,
         graphSupportSeedCount: 0,
-        graphSupportSeedTotal: signals.seedPaperCount
+        graphSupportSeedTotal,
+        rankScore,
+        scoreContributions: foundationalContributions({ ...work, graphSupportScore: 0, rankScore })
       };
     }
     const seedReferenceFrequencyNormalized = signals.seedPaperCount ? reference.referenceFrequency / signals.seedPaperCount : 0;
@@ -1742,7 +1919,15 @@ function applyGraphSupport(works: NormalizedWork[], signals: CitationNetworkSign
       ...work,
       graphSupportScore,
       graphSupportSeedCount: reference.referenceFrequency,
-      graphSupportSeedTotal: signals.seedPaperCount
+      graphSupportSeedTotal,
+      rankScore: work.foundationalScore + graphSupportScore,
+      scoreContributions: foundationalContributions({
+        ...work,
+        graphSupportScore,
+        graphSupportSeedCount: reference.referenceFrequency,
+        graphSupportSeedTotal,
+        rankScore: work.foundationalScore + graphSupportScore
+      })
     };
   });
 }
@@ -1774,10 +1959,19 @@ function buildDataQuality(
   };
 }
 
-function buildWarnings(dataQuality: DataQuality, confidence: Confidence, semanticEnabled: boolean): string[] {
+function buildWarnings(dataQuality: DataQuality, confidence: Confidence, semanticEnabled: boolean, judgeSignals: JudgeSignals): string[] {
   const warnings: string[] = [];
   if (!semanticEnabled) {
     warnings.push("Semantic ranking unavailable; using keyword and citation scoring only.");
+  }
+  if (judgeSignals.enabled && judgeSignals.failedBatchCount > 0) {
+    warnings.push("LLM relevance judge unavailable for some batches; using embedding/keyword relevance for those papers.");
+  }
+  if (judgeSignals.unjudgedNoAbstractCount > 0) {
+    warnings.push(`${judgeSignals.unjudgedNoAbstractCount} paper(s) had no abstract and could not be topic-verified.`);
+  }
+  if (judgeSignals.filteredOffTopicCount > 0) {
+    warnings.push(`${judgeSignals.filteredOffTopicCount} off-topic paper(s) removed by relevance judge.`);
   }
   if (confidence === "sparse") {
     warnings.push("Sparse data: this topic returned fewer than 25 usable works, so recommendations should be treated as exploratory.");
@@ -1944,8 +2138,14 @@ function buildEvidence(
   ];
 }
 
-function toPaperRecommendation(work: NormalizedWork, score: number, reasonCodes: string[]): PaperRecommendation {
+function toPaperRecommendation(
+  work: NormalizedWork,
+  score: number,
+  reasonCodes: string[],
+  facet: "foundational" | "recent-influence" = "foundational"
+): PaperRecommendation {
   const countsByYearHistory = buildCitationHistoryFromCountsByYear(work.countsByYear);
+  const scoreContributions = facet === "recent-influence" ? recentInfluenceContributions(work) : work.scoreContributions ?? foundationalContributions(work);
   return {
     id: work.id,
     title: work.title,
@@ -1958,7 +2158,7 @@ function toPaperRecommendation(work: NormalizedWork, score: number, reasonCodes:
     relevanceScore: Number(work.relevanceScore.toFixed(3)),
     semanticRelevanceScore: work.semanticRelevanceScore === null ? null : Number(work.semanticRelevanceScore.toFixed(3)),
     score: Number(score.toFixed(3)),
-    reasonCodes,
+    reasonCodes: appendDiagnosticReasonCodes(reasonCodes, work),
     authors: work.authors.slice(0, 5),
     citationHistory: countsByYearHistory.history,
     citationHistoryStatus: countsByYearHistory.status,
@@ -1967,7 +2167,20 @@ function toPaperRecommendation(work: NormalizedWork, score: number, reasonCodes:
     graphSupportScore: Number(work.graphSupportScore.toFixed(3)),
     graphSupportNote: work.graphSupportSeedCount
       ? `Graph support: cited by ${work.graphSupportSeedCount} of ${Math.max(1, work.graphSupportSeedTotal)} seed papers.`
-      : null
+      : null,
+    rankScore: Number((work.rankScore ?? work.foundationalScore).toFixed(3)),
+    scoreContributions: scoreContributions.map((item) => ({
+      ...item,
+      value: Number(item.value.toFixed(3))
+    })),
+    reasoning: {
+      facet,
+      score: Number(score.toFixed(3)),
+      contributions: scoreContributions.map((item) => ({
+        ...item,
+        value: Number(item.value.toFixed(3))
+      }))
+    }
   };
 }
 

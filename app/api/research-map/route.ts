@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
   try {
     const works = await fetchOpenAlexWorks(parsed.data);
-    return NextResponse.json(await buildResearchMap(parsed.data, works));
+    return NextResponse.json(await buildResearchMap(parsed.data, works, {}));
   } catch (error) {
     return NextResponse.json(
       {

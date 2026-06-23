@@ -23,7 +23,7 @@ function work(overrides: Partial<OpenAlexWork> & { id: string; display_name: str
 }
 
 describe("filterByRelevance", () => {
-  it("rejects clearly off-topic papers via low cosine", () => {
+  it("keeps clearly off-topic papers while reporting low-cosine diagnostics", () => {
     const works = [
       work({
         id: "ON1",
@@ -40,7 +40,7 @@ describe("filterByRelevance", () => {
     ];
     const out = filterByRelevance("AI for mechanical design", works);
     expect(out.kept.map((w) => w.id)).toContain("ON1");
-    expect(out.kept.map((w) => w.id)).not.toContain("OFF");
+    expect(out.kept.map((w) => w.id)).toContain("OFF");
     expect(out.rejected.map((r) => r.work.id)).toContain("OFF");
   });
 

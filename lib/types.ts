@@ -33,6 +33,21 @@ export type PaperRecommendation = {
   citationHistoryNote: string;
   graphSupportScore: number;
   graphSupportNote: string | null;
+  rankScore?: number;
+  scoreContributions?: ScoreContribution[];
+  reasoning?: ScoreLedger | null;
+};
+
+export type ScoreContribution = {
+  code: string;
+  label: string;
+  value: number;
+};
+
+export type ScoreLedger = {
+  facet: "foundational" | "recent-influence" | "relevance";
+  score: number;
+  contributions: ScoreContribution[];
 };
 
 export type CitationYear = {
@@ -225,6 +240,22 @@ export type SemanticSignals = {
   failedPaperCount: number;
 };
 
+export type JudgeSignals = {
+  enabled: boolean;
+  model: string | null;
+  judgedCount: number;
+  filteredOffTopicCount: number;
+  unjudgedNoAbstractCount: number;
+  failedBatchCount: number;
+};
+
+export type ExcludedPaper = {
+  id: string;
+  title: string;
+  judgeGrade: 0 | 1 | 2 | 3 | null;
+  reason: string;
+};
+
 export type ResearchMapResponse = {
   query: ResearchMapRequest;
   confidence: Confidence;
@@ -237,6 +268,8 @@ export type ResearchMapResponse = {
   citationNetworkSignals: CitationNetworkSignals;
   researchDirectionSummary: ResearchDirectionSummary;
   semanticSignals: SemanticSignals;
+  judgeSignals?: JudgeSignals;
+  excludedPapers?: ExcludedPaper[];
   projectIdeas: ProjectIdea[];
   evidence: EvidenceItem[];
   warnings: string[];
@@ -319,6 +352,17 @@ export type NormalizedWork = {
   semanticRelevanceScore: number | null;
   finalRelevanceScore: number;
   embeddingModel: string | null;
+  preGateScore?: number;
+  preGateCosine?: number | null;
+  preGateCoverage?: number | null;
+  preGateDriftDomains?: string[];
+  preGateReasonCodes?: string[];
+  judged?: boolean;
+  judgeGrade?: 0 | 1 | 2 | 3 | null;
+  judgeGradeScore?: number | null;
+  judgeOnTopic?: boolean | null;
+  judgeAbout?: string | null;
+  judgeReason?: string | null;
   logCitationScore: number;
   citationPercentileScore: number;
   citationsPerYearScore: number;
@@ -329,5 +373,7 @@ export type NormalizedWork = {
   graphSupportSeedTotal: number;
   foundationalScore: number;
   recentInfluenceScore: number;
+  rankScore?: number;
+  scoreContributions?: ScoreContribution[];
   citationsPerYear: number;
 };

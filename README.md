@@ -49,3 +49,10 @@ If `OPENAI_API_KEY` is not set, the website still works and falls back to keywor
 - Computed confidence, warnings, and data-quality metrics
 
 V1 does not include accounts, saved reports, PDF export, embedding clustering, industry mapping, lab ranking, or research timelines.
+
+## Status
+
+**v1 shipped and frozen.** Tests (`npm test`) and the production build
+(`npm run build`) are green. The project is in maintenance-only mode — see
+[`ROADMAP.md`](ROADMAP.md) for the rationale and the conditions under which v2
+work would resume.

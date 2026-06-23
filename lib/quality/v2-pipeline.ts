@@ -10,10 +10,9 @@ export async function buildV2ResearchMap(
   rawWorks: OpenAlexWork[]
 ): Promise<V2ResearchMapResponse> {
   const relevance = filterByRelevance(request.topic, rawWorks);
-  const keptWorks = relevance.kept.length ? relevance.kept : rawWorks;
-  const baseMap = await buildResearchMap(request, keptWorks);
+  const baseMap = await buildResearchMap(request, rawWorks, {});
 
-  const normalization = normalizeWorks(request, keptWorks);
+  const normalization = normalizeWorks(request, rawWorks);
   const scored = scoreWorks(request, normalization.works);
   const split = splitMegaClusters(baseMap.clusters, scored);
   const v2Clusters: V2Cluster[] = split.clusters.slice(0, 12).map((cluster) => {

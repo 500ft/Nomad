@@ -155,12 +155,12 @@ export function filterByRelevance(query: string, works: OpenAlexWork[]): Relevan
   };
 
   for (const r of results) {
+    kept.push(r.work);
     if (r.verdict === "reject") {
       rejected.push(r);
       for (const reason of r.reasons) rejectionReasons[reason]++;
-    } else {
-      kept.push(r.work);
-      if (r.verdict === "warn") warned.push(r);
+    } else if (r.verdict === "warn") {
+      warned.push(r);
     }
   }
 

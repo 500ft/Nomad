@@ -14,9 +14,16 @@ function paper(id: string, overrides: Partial<PaperRecommendation> = {}): PaperR
     citationCount: 100,
     citationsPerYear: 25,
     relevanceScore: 0.7,
+    semanticRelevanceScore: null,
     score: 0.8,
     reasonCodes: [],
     authors: [],
+    citationHistory: null,
+    citationHistoryStatus: "unavailable",
+    citationHistorySource: null,
+    citationHistoryNote: "",
+    graphSupportScore: 0,
+    graphSupportNote: null,
     ...overrides
   };
 }
@@ -43,6 +50,49 @@ function emptyMap(over: Partial<ResearchMapResponse> = {}): ResearchMapResponse 
     recentInfluencePapers: [],
     people: [],
     clusters: [],
+    queryFocus: {
+      label: "moderate",
+      medianRelevance: 0.7,
+      clusterCount: 1,
+      weakClusterCount: 0,
+      weakClusterShare: 0,
+      topClusterShare: 1,
+      usableWorks: 30,
+      reason: "test fixture",
+      suggestions: []
+    },
+    citationSignals: {
+      totalUsableWorks: 30,
+      medianCitationsPerYear: 2,
+      topClusterByPaperCount: null,
+      topClusterByRecentInfluence: null,
+      recentPaperShare: 0.5,
+      confidence: "moderate"
+    },
+    citationNetworkSignals: {
+      seedPaperIds: [],
+      seedPaperCount: 0,
+      seedPapersWithReferences: 0,
+      fetchedReferenceCount: 0,
+      sharedReferenceCount: 0,
+      graphCoverageRatio: 0,
+      requestBudgetUsed: 0,
+      requestBudgetMax: 7,
+      topSharedReferences: [],
+      limitations: []
+    },
+    researchDirectionSummary: {
+      strongerRecentActivity: [],
+      weakerRecentPaperSignal: [],
+      briefSummary: "test fixture",
+      limitations: []
+    },
+    semanticSignals: {
+      enabled: false,
+      model: null,
+      embeddedPaperCount: 0,
+      failedPaperCount: 0
+    },
     projectIdeas: [],
     evidence: [],
     warnings: [],
@@ -85,8 +135,8 @@ describe("buildRoadmap", () => {
       ],
       clusters: [c1, c2],
       projectIdeas: [
-        { title: "P1", description: "d", difficulty: "beginner", requiredBackground: [], supportingPaperIds: [], supportingClusterIds: ["C1"], reasonCodes: [], whyNow: "now", mvpVersion: "v1", confidence: "moderate" },
-        { title: "P2", description: "d", difficulty: "beginner", requiredBackground: [], supportingPaperIds: [], supportingClusterIds: ["C2"], reasonCodes: [], whyNow: "now", mvpVersion: "v1", confidence: "moderate" }
+        { title: "P1", description: "d", difficulty: "beginner", requiredBackground: [], supportingPaperIds: [], supportingClusterIds: ["C1"], reasonCodes: [], whyNow: "now", mvpVersion: "v1", confidence: "moderate", traceability: { supportingPaperIds: [], supportingClusterIds: ["C1"], supportingReferenceIds: [], evidenceTypes: [], evidenceNote: "", limitations: [] } },
+        { title: "P2", description: "d", difficulty: "beginner", requiredBackground: [], supportingPaperIds: [], supportingClusterIds: ["C2"], reasonCodes: [], whyNow: "now", mvpVersion: "v1", confidence: "moderate", traceability: { supportingPaperIds: [], supportingClusterIds: ["C2"], supportingReferenceIds: [], evidenceTypes: [], evidenceNote: "", limitations: [] } }
       ]
     });
 

@@ -14,9 +14,16 @@ function paper(id: string, overrides: Partial<PaperRecommendation> = {}): PaperR
     citationCount: 10,
     citationsPerYear: 5,
     relevanceScore: 0.7,
+    semanticRelevanceScore: null,
     score: 0.5,
     reasonCodes: [],
     authors: [],
+    citationHistory: null,
+    citationHistoryStatus: "unavailable",
+    citationHistorySource: null,
+    citationHistoryNote: "",
+    graphSupportScore: 0,
+    graphSupportNote: null,
     ...overrides
   };
 }
@@ -99,6 +106,49 @@ describe("deriveClusterTrends", () => {
       recentInfluencePapers: [paper("R1")],
       people: [],
       clusters: [cluster({ id: "A", label: "A", paperIds: ["R1"] }), cluster({ id: "B", label: "B" })],
+      queryFocus: {
+        label: "moderate",
+        medianRelevance: 0.7,
+        clusterCount: 2,
+        weakClusterCount: 0,
+        weakClusterShare: 0,
+        topClusterShare: 0.5,
+        usableWorks: 10,
+        reason: "test fixture",
+        suggestions: []
+      },
+      citationSignals: {
+        totalUsableWorks: 10,
+        medianCitationsPerYear: 5,
+        topClusterByPaperCount: null,
+        topClusterByRecentInfluence: null,
+        recentPaperShare: 0.5,
+        confidence: "moderate"
+      },
+      citationNetworkSignals: {
+        seedPaperIds: [],
+        seedPaperCount: 0,
+        seedPapersWithReferences: 0,
+        fetchedReferenceCount: 0,
+        sharedReferenceCount: 0,
+        graphCoverageRatio: 0,
+        requestBudgetUsed: 0,
+        requestBudgetMax: 7,
+        topSharedReferences: [],
+        limitations: []
+      },
+      researchDirectionSummary: {
+        strongerRecentActivity: [],
+        weakerRecentPaperSignal: [],
+        briefSummary: "test fixture",
+        limitations: []
+      },
+      semanticSignals: {
+        enabled: false,
+        model: null,
+        embeddedPaperCount: 0,
+        failedPaperCount: 0
+      },
       projectIdeas: [],
       evidence: [],
       warnings: [],

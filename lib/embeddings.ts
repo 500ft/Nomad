@@ -40,12 +40,17 @@ export function cosineSimilarity(a: number[], b: number[]): number {
   return (dot / (Math.sqrt(aMagnitude) * Math.sqrt(bMagnitude)) + 1) / 2;
 }
 
-export function blendRelevance(keywordRelevanceScore: number, semanticRelevanceScore: number | null, citationPercentileScore: number): number {
+export function blendRelevance(keywordRelevanceScore: number, semanticRelevanceScore: number | null, judgeGradeScore: number | null = null): number {
+  if (judgeGradeScore !== null) {
+    const semantic = semanticRelevanceScore ?? keywordRelevanceScore;
+    return clamp01(0.55 * judgeGradeScore + 0.3 * keywordRelevanceScore + 0.15 * semantic);
+  }
+
   if (semanticRelevanceScore === null) {
     return keywordRelevanceScore;
   }
 
-  return clamp01(0.45 * keywordRelevanceScore + 0.35 * semanticRelevanceScore + 0.2 * citationPercentileScore);
+  return clamp01(0.65 * keywordRelevanceScore + 0.35 * semanticRelevanceScore);
 }
 
 export async function applySemanticRelevance(works: NormalizedWork[], queryText: string, apiKey = process.env.OPENAI_API_KEY): Promise<EmbeddingResult> {
@@ -103,8 +108,8 @@ export async function applySemanticRelevance(works: NormalizedWork[], queryText:
       return {
         ...work,
         semanticRelevanceScore,
-        finalRelevanceScore: blendRelevance(work.keywordRelevanceScore, semanticRelevanceScore, work.citationPercentileScore),
-        relevanceScore: blendRelevance(work.keywordRelevanceScore, semanticRelevanceScore, work.citationPercentileScore),
+        finalRelevanceScore: blendRelevance(work.keywordRelevanceScore, semanticRelevanceScore, work.judgeGradeScore),
+        relevanceScore: blendRelevance(work.keywordRelevanceScore, semanticRelevanceScore, work.judgeGradeScore),
         embeddingModel: EMBEDDING_MODEL
       };
     });

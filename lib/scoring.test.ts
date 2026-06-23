@@ -10,6 +10,7 @@ import {
 } from "./openalex";
 import { visibleCitationHistory } from "./citation-history-view";
 import { blendRelevance, cosineSimilarity } from "./embeddings";
+import type { JudgeFn } from "./relevance-judge";
 import {
   buildCompactText,
   buildProjectIdeas,
@@ -276,6 +277,84 @@ describe("research map output", () => {
     expect(map.clusters.map((cluster) => cluster.label)).toContain("HVAC airflow modeling");
     expect(map.projectIdeas.every((idea) => idea.supportingPaperIds.length > 0)).toBe(true);
     expect(map.projectIdeas.every((idea) => Boolean(idea.firstExperiment))).toBe(true);
+  });
+
+  it("removes explicit judge grade-0 papers from every downstream section when hard filtering is enabled", async () => {
+    const offTopicId = "https://openalex.org/W-OFF";
+    const works = [
+      work("W-OFF", {
+        display_name: "Hotel marketing survey with generic machine learning terminology",
+        cited_by_count: 1000,
+        primary_topic: {
+          id: "https://openalex.org/T-hotel",
+          display_name: "Hospitality marketing"
+        },
+        keywords: [{ display_name: "hotel" }, { display_name: "marketing" }],
+        referenced_works: ["https://openalex.org/W-shared"]
+      }),
+      ...Array.from({ length: 34 }, (_, index) =>
+        work(`W-on-${index}`, {
+          display_name: `Machine learning HVAC CFD on-topic paper ${index}`,
+          cited_by_count: 10 + index,
+          primary_topic: {
+            id: index % 2 ? "https://openalex.org/T-hvac" : "https://openalex.org/T-cfd",
+            display_name: index % 2 ? "HVAC airflow modeling" : "Computational fluid dynamics"
+          },
+          referenced_works: index < 6 ? ["https://openalex.org/W-shared"] : []
+        })
+      )
+    ];
+    const relevanceJudge: JudgeFn = async ({ works: judgeWorks }) =>
+      judgeWorks.map((candidate) => ({
+        workId: candidate.id,
+        onTopic: candidate.id !== offTopicId,
+        grade: candidate.id === offTopicId ? 0 : 2,
+        about: candidate.id === offTopicId ? "Hospitality marketing." : "HVAC CFD research.",
+        reason: candidate.id === offTopicId ? "The core contribution is hospitality marketing." : "The paper addresses HVAC CFD."
+      }));
+
+    const map = await buildResearchMap(request, works, {
+      citationHistoryFetcher: unavailableCitationHistory,
+      referenceFetcher: async () => [
+        work("W-shared", {
+          display_name: "Shared HVAC CFD reference",
+          cited_by_count: 500,
+          publication_year: 2020,
+          primary_topic: { id: "https://openalex.org/T-hvac", display_name: "HVAC airflow modeling" }
+        })
+      ],
+      relevanceJudge,
+      hardFilterJudge: true
+    });
+
+    expect(map.excludedPapers?.map((paper) => paper.id)).toContain(offTopicId);
+    expect(map.judgeSignals?.filteredOffTopicCount).toBe(1);
+    expect(map.foundationalPapers.map((paper) => paper.id)).not.toContain(offTopicId);
+    expect(map.recentInfluencePapers.map((paper) => paper.id)).not.toContain(offTopicId);
+    expect(map.clusters.flatMap((cluster) => cluster.paperIds)).not.toContain(offTopicId);
+    expect(map.people.flatMap((person) => person.paperIds)).not.toContain(offTopicId);
+    expect(map.projectIdeas.flatMap((idea) => idea.supportingPaperIds)).not.toContain(offTopicId);
+    expect(map.citationNetworkSignals.seedPaperIds).not.toContain(offTopicId);
+  });
+
+  it("derives reason codes and ledger totals from the ranking math", async () => {
+    const works = Array.from({ length: 35 }, (_, index) =>
+      work(`W-ledger-${index}`, {
+        display_name: `Machine learning HVAC CFD ledger paper ${index}`,
+        cited_by_count: 20 + index,
+        publication_year: 2021 + (index % 5)
+      })
+    );
+
+    const map = await buildResearchMap(request, works, { citationHistoryFetcher: unavailableCitationHistory });
+    const paper = map.foundationalPapers[0];
+    expect(paper.scoreContributions).toBeDefined();
+    expect(paper.rankScore).toBeDefined();
+    const contributionSum = paper.scoreContributions!.reduce((sum, item) => sum + item.value, 0);
+
+    expect(paper.reasonCodes).not.toContain("high-citation-signal");
+    expect(contributionSum).toBeCloseTo(paper.rankScore!, 3);
+    expect(paper.reasoning?.score).toBe(paper.score);
   });
 });
 
@@ -782,8 +861,9 @@ describe("semantic preparation", () => {
 
   it("calculates cosine similarity and blends relevance", () => {
     expect(cosineSimilarity([1, 0], [1, 0])).toBe(1);
-    expect(blendRelevance(0.5, 0.8, 0.4)).toBeCloseTo(0.585);
-    expect(blendRelevance(0.5, null, 0.4)).toBe(0.5);
+    expect(blendRelevance(0.5, 0.8)).toBeCloseTo(0.605);
+    expect(blendRelevance(0.5, 0.8, 0.4)).toBeCloseTo(0.49);
+    expect(blendRelevance(0.5, null)).toBe(0.5);
   });
 });
 

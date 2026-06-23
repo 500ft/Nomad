@@ -10,7 +10,7 @@ function nWork(overrides: Partial<NormalizedWork> & { id: string; title: string 
     year: 2023,
     publicationDate: "2023-01-01",
     citationCount: 50,
-    citationPercentile: 0.5,
+    citationPercentileValue: 0.5,
     authors: [],
     primaryTopic: { id: "T_MEGA", display_name: "Battery thermal management" },
     topics: [],
@@ -18,8 +18,19 @@ function nWork(overrides: Partial<NormalizedWork> & { id: string; title: string 
     type: "article",
     isRetracted: false,
     hasAbstract: true,
+    abstractText: "test abstract",
+    compactText: "test abstract",
+    countsByYear: [],
+    referencedWorks: [],
+    referencedWorksCount: null,
+    fwci: null,
+    citedByApiUrl: null,
     url: `https://openalex.org/${overrides.id}`,
     relevanceScore: 0.7,
+    keywordRelevanceScore: 0.7,
+    semanticRelevanceScore: null,
+    finalRelevanceScore: 0.7,
+    embeddingModel: null,
     logCitationScore: 0.5,
     citationPercentileScore: 0.5,
     citationsPerYearScore: 0.5,
@@ -28,7 +39,10 @@ function nWork(overrides: Partial<NormalizedWork> & { id: string; title: string 
     foundationalScore: 0.5,
     recentInfluenceScore: 0.5,
     citationsPerYear: 10,
-    ...overrides
+    ...overrides,
+    graphSupportScore: overrides.graphSupportScore ?? 0,
+    graphSupportSeedCount: overrides.graphSupportSeedCount ?? 0,
+    graphSupportSeedTotal: overrides.graphSupportSeedTotal ?? 0
   };
 }
 
@@ -69,7 +83,7 @@ describe("splitMegaClusters", () => {
             nWork({
               id: `W${i}`,
               title: `Investigation of ${seed} for battery thermal management variant ${r}`,
-              keywords: seed.split(" ").map((display_name) => ({ display_name }))
+              keywords: seed.split(" ")
             })
           );
           i++;
