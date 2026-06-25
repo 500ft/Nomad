@@ -1,0 +1,917 @@
+{
+  "request": {
+    "topic": "soft robotics actuators",
+    "field": "mechanical engineering",
+    "experienceLevel": "technical",
+    "goal": "read",
+    "fromYear": 2018,
+    "toYear": 2026
+  },
+  "capturedAt": "2026-06-25T00:00:00.000Z",
+  "works": [
+    {
+      "id": "https://openalex.org/W_SR_TRENCH",
+      "doi": "https://doi.org/10.1000/W_SR_TRENCH",
+      "display_name": "Self-powered soft robot in the Mariana Trench",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 900,
+      "citation_normalized_percentile": {
+        "value": 0.99
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_trench",
+            "display_name": "Trench Group"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_SOFT",
+        "display_name": "Soft robotics actuators"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_SOFT",
+          "display_name": "Soft robotics actuators"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "soft robot"
+        },
+        {
+          "id": null,
+          "display_name": "deep sea"
+        },
+        {
+          "id": null,
+          "display_name": "pressure adaptive"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Self-powered": [
+          0
+        ],
+        "soft": [
+          1,
+          7
+        ],
+        "robot": [
+          2,
+          8
+        ],
+        "in": [
+          3
+        ],
+        "the": [
+          4
+        ],
+        "Mariana": [
+          5
+        ],
+        "Trench": [
+          6
+        ],
+        "deep": [
+          9
+        ],
+        "sea": [
+          10
+        ],
+        "pressure": [
+          11
+        ],
+        "adaptive": [
+          12
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 360
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 540
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_SR_MAGNET",
+      "doi": "https://doi.org/10.1000/W_SR_MAGNET",
+      "display_name": "Magnetic soft continuum robots for minimally invasive surgery",
+      "relevance_score": 80,
+      "publication_year": 2020,
+      "publication_date": "2020-03-01",
+      "cited_by_count": 750,
+      "citation_normalized_percentile": {
+        "value": 0.98
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_magnet",
+            "display_name": "Magnetic Soft Lab"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_SOFT",
+        "display_name": "Soft robotics actuators"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_SOFT",
+          "display_name": "Soft robotics actuators"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "magnetic soft"
+        },
+        {
+          "id": null,
+          "display_name": "continuum"
+        },
+        {
+          "id": null,
+          "display_name": "actuation"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Magnetic": [
+          0
+        ],
+        "soft": [
+          1,
+          9
+        ],
+        "continuum": [
+          2,
+          10
+        ],
+        "robots": [
+          3
+        ],
+        "for": [
+          4
+        ],
+        "minimally": [
+          5
+        ],
+        "invasive": [
+          6
+        ],
+        "surgery": [
+          7
+        ],
+        "magnetic": [
+          8
+        ],
+        "actuation": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2020,
+          "cited_by_count": 300
+        },
+        {
+          "year": 2021,
+          "cited_by_count": 450
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_SR_HYDRO",
+      "doi": "https://doi.org/10.1000/W_SR_HYDRO",
+      "display_name": "Hydrogel actuators for untethered soft robotics",
+      "relevance_score": 80,
+      "publication_year": 2019,
+      "publication_date": "2019-03-01",
+      "cited_by_count": 680,
+      "citation_normalized_percentile": {
+        "value": 0.97
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_hydro",
+            "display_name": "Hydrogel Group"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_SOFT",
+        "display_name": "Soft robotics actuators"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_SOFT",
+          "display_name": "Soft robotics actuators"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "hydrogel"
+        },
+        {
+          "id": null,
+          "display_name": "actuator"
+        },
+        {
+          "id": null,
+          "display_name": "untethered"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Hydrogel": [
+          0
+        ],
+        "actuators": [
+          1
+        ],
+        "for": [
+          2
+        ],
+        "untethered": [
+          3,
+          8
+        ],
+        "soft": [
+          4
+        ],
+        "robotics": [
+          5
+        ],
+        "hydrogel": [
+          6
+        ],
+        "actuator": [
+          7
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2019,
+          "cited_by_count": 272
+        },
+        {
+          "year": 2020,
+          "cited_by_count": 408
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_SR_PNEU",
+      "doi": "https://doi.org/10.1000/W_SR_PNEU",
+      "display_name": "Pneumatic networks for soft robotic grippers",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 220,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pneu",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_SOFT",
+        "display_name": "Soft robotics actuators"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_SOFT",
+          "display_name": "Soft robotics actuators"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "pneumatic"
+        },
+        {
+          "id": null,
+          "display_name": "gripper"
+        },
+        {
+          "id": null,
+          "display_name": "soft"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Pneumatic": [
+          0
+        ],
+        "networks": [
+          1
+        ],
+        "for": [
+          2
+        ],
+        "soft": [
+          3,
+          8
+        ],
+        "robotic": [
+          4
+        ],
+        "grippers": [
+          5
+        ],
+        "pneumatic": [
+          6
+        ],
+        "gripper": [
+          7
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 88
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 132
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_SR_DEA",
+      "doi": "https://doi.org/10.1000/W_SR_DEA",
+      "display_name": "Dielectric elastomer actuators for compliant robots",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 180,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_dea",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_SOFT",
+        "display_name": "Soft robotics actuators"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_SOFT",
+          "display_name": "Soft robotics actuators"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "dielectric elastomer"
+        },
+        {
+          "id": null,
+          "display_name": "actuator"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Dielectric": [
+          0
+        ],
+        "elastomer": [
+          1,
+          7
+        ],
+        "actuators": [
+          2
+        ],
+        "for": [
+          3
+        ],
+        "compliant": [
+          4
+        ],
+        "robots": [
+          5
+        ],
+        "dielectric": [
+          6
+        ],
+        "actuator": [
+          8
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 72
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 108
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_SR_SENS",
+      "doi": "https://doi.org/10.1000/W_SR_SENS",
+      "display_name": "Stretchable strain sensors for soft robot proprioception",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 140,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_sens",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_SOFT",
+        "display_name": "Soft robotics actuators"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_SOFT",
+          "display_name": "Soft robotics actuators"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "stretchable"
+        },
+        {
+          "id": null,
+          "display_name": "sensor"
+        },
+        {
+          "id": null,
+          "display_name": "proprioception"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Stretchable": [
+          0
+        ],
+        "strain": [
+          1
+        ],
+        "sensors": [
+          2
+        ],
+        "for": [
+          3
+        ],
+        "soft": [
+          4
+        ],
+        "robot": [
+          5
+        ],
+        "proprioception": [
+          6,
+          9
+        ],
+        "stretchable": [
+          7
+        ],
+        "sensor": [
+          8
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 56
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 84
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_SR_FAB",
+      "doi": "https://doi.org/10.1000/W_SR_FAB",
+      "display_name": "3D printing methods for multimaterial soft actuators",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 160,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_fab",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_SOFT",
+        "display_name": "Soft robotics actuators"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_SOFT",
+          "display_name": "Soft robotics actuators"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "3d printing"
+        },
+        {
+          "id": null,
+          "display_name": "multimaterial"
+        },
+        {
+          "id": null,
+          "display_name": "soft"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "3D": [
+          0
+        ],
+        "printing": [
+          1,
+          8
+        ],
+        "methods": [
+          2
+        ],
+        "for": [
+          3
+        ],
+        "multimaterial": [
+          4,
+          9
+        ],
+        "soft": [
+          5,
+          10
+        ],
+        "actuators": [
+          6
+        ],
+        "3d": [
+          7
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 64
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 96
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_SR_MODEL",
+      "doi": "https://doi.org/10.1000/W_SR_MODEL",
+      "display_name": "Finite element modeling of soft pneumatic bending actuators",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 130,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_model",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_SOFT",
+        "display_name": "Soft robotics actuators"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_SOFT",
+          "display_name": "Soft robotics actuators"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "finite element"
+        },
+        {
+          "id": null,
+          "display_name": "bending"
+        },
+        {
+          "id": null,
+          "display_name": "soft"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Finite": [
+          0
+        ],
+        "element": [
+          1,
+          9
+        ],
+        "modeling": [
+          2
+        ],
+        "of": [
+          3
+        ],
+        "soft": [
+          4,
+          11
+        ],
+        "pneumatic": [
+          5
+        ],
+        "bending": [
+          6,
+          10
+        ],
+        "actuators": [
+          7
+        ],
+        "finite": [
+          8
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 52
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 78
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_OFF_HOTEL",
+      "doi": "https://doi.org/10.1000/W_OFF_HOTEL",
+      "display_name": "Effects of COVID-19 on hotel marketing and hospitality management",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 300,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_hotel",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_HOTEL",
+        "display_name": "Hospitality marketing"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_HOTEL",
+          "display_name": "Hospitality marketing"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "hotel"
+        },
+        {
+          "id": null,
+          "display_name": "marketing"
+        },
+        {
+          "id": null,
+          "display_name": "tourism"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Effects": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "COVID-19": [
+          2
+        ],
+        "on": [
+          3
+        ],
+        "hotel": [
+          4,
+          9
+        ],
+        "marketing": [
+          5,
+          10
+        ],
+        "and": [
+          6
+        ],
+        "hospitality": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "tourism": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 120
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 180
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_OFF_FINANCE",
+      "doi": "https://doi.org/10.1000/W_OFF_FINANCE",
+      "display_name": "Stock market volatility forecasting with macroeconomic indicators",
+      "relevance_score": 80,
+      "publication_year": 2020,
+      "publication_date": "2020-03-01",
+      "cited_by_count": 250,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_fin",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_FIN",
+        "display_name": "Financial econometrics"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_FIN",
+          "display_name": "Financial econometrics"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "stock market"
+        },
+        {
+          "id": null,
+          "display_name": "volatility"
+        },
+        {
+          "id": null,
+          "display_name": "finance"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Stock": [
+          0
+        ],
+        "market": [
+          1,
+          8
+        ],
+        "volatility": [
+          2,
+          9
+        ],
+        "forecasting": [
+          3
+        ],
+        "with": [
+          4
+        ],
+        "macroeconomic": [
+          5
+        ],
+        "indicators": [
+          6
+        ],
+        "stock": [
+          7
+        ],
+        "finance": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2020,
+          "cited_by_count": 100
+        },
+        {
+          "year": 2021,
+          "cited_by_count": 150
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    }
+  ]
+}

@@ -2,6 +2,8 @@ import type { CitationHistoryResult, CitationYear, OpenAlexCountByYear, OpenAlex
 
 const OPENALEX_WORKS_URL = "https://api.openalex.org/works";
 const CACHE_TTL_MS = 60 * 60 * 1000;
+// Cap on how many query variants we issue per request, so recall never blows up the request budget.
+const MAX_QUERY_VARIANTS = 3;
 const worksCache = new Map<string, { expiresAt: number; works: OpenAlexWork[] }>();
 const citationHistoryCache = new Map<string, { expiresAt: number; result: CitationHistoryResult }>();
 const SELECT_FIELDS = [
@@ -40,9 +42,29 @@ const REFERENCE_SELECT_FIELDS = [
   "authorships"
 ].join(",");
 
-export function buildOpenAlexWorksUrl(request: ResearchMapRequest, perPage = 200): string {
+/**
+ * OpenAlex polite-pool contact. When `OPENALEX_MAILTO` is set we attach it as the
+ * `mailto` query param on every OpenAlex request so we are routed to the polite pool
+ * (https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication#the-polite-pool).
+ * Falls back to a no-op when unset so behavior (and existing URL assertions) are unchanged.
+ */
+function openAlexMailto(): string | null {
+  const mailto = (process.env.OPENALEX_MAILTO ?? "").trim();
+  return mailto.length ? mailto : null;
+}
+
+/** Apply the polite-pool `mailto` param to an OpenAlex URL in place when configured. */
+function applyMailto(url: URL): URL {
+  const mailto = openAlexMailto();
+  if (mailto) {
+    url.searchParams.set("mailto", mailto);
+  }
+  return url;
+}
+
+export function buildOpenAlexWorksUrl(request: ResearchMapRequest, perPage = 200, search = request.topic): string {
   const url = new URL(OPENALEX_WORKS_URL);
-  url.searchParams.set("search", request.topic);
+  url.searchParams.set("search", search);
   url.searchParams.set(
     "filter",
     [
@@ -54,7 +76,72 @@ export function buildOpenAlexWorksUrl(request: ResearchMapRequest, perPage = 200
   url.searchParams.set("select", SELECT_FIELDS);
   url.searchParams.set("per-page", String(Math.min(Math.max(perPage, 30), 300)));
   url.searchParams.set("sort", "relevance_score:desc");
-  return url.toString();
+  return applyMailto(url).toString();
+}
+
+/**
+ * Build the ordered set of search strings to query for one request. The user's verbatim
+ * topic always comes first (it backs the primary relevance signal); lightweight variants
+ * widen recall without changing the request contract. Variants are de-duplicated and capped.
+ */
+export function buildSearchVariants(request: ResearchMapRequest): string[] {
+  const topic = request.topic.trim();
+  const seen = new Set<string>();
+  const variants: string[] = [];
+
+  const add = (candidate: string) => {
+    const value = candidate.trim().replace(/\s+/g, " ");
+    if (!value) return;
+    const key = value.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    variants.push(value);
+  };
+
+  // Primary query: the user's exact topic (must stay first).
+  add(topic);
+
+  // Variant 1: topic scoped by field, which biases recall toward the user's discipline.
+  const field = (request.field ?? "").trim();
+  if (field) {
+    add(`${topic} ${field}`);
+  }
+
+  // Variant 2: the topic's salient terms only (drops filler words, recovers term-matched papers
+  // that the full phrase ranks too low to surface in a single page).
+  const coreTerms = extractCoreTerms(topic);
+  if (coreTerms && coreTerms.toLowerCase() !== topic.toLowerCase()) {
+    add(coreTerms);
+  }
+
+  return variants.slice(0, MAX_QUERY_VARIANTS);
+}
+
+const SEARCH_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "the",
+  "for",
+  "of",
+  "and",
+  "or",
+  "to",
+  "in",
+  "on",
+  "with",
+  "using",
+  "based",
+  "via",
+  "by",
+  "from"
+]);
+
+/** Keep the content-bearing terms of a topic, dropping connective stop words. */
+function extractCoreTerms(topic: string): string {
+  return topic
+    .split(/\s+/)
+    .filter((token) => token.length > 0 && !SEARCH_STOP_WORDS.has(token.toLowerCase()))
+    .join(" ");
 }
 
 export async function fetchOpenAlexWorks(request: ResearchMapRequest): Promise<OpenAlexWork[]> {
@@ -64,7 +151,16 @@ export async function fetchOpenAlexWorks(request: ResearchMapRequest): Promise<O
     return cached.works;
   }
 
-  const response = await fetch(buildOpenAlexWorksUrl(request), {
+  const variants = buildSearchVariants(request);
+  const pages = await Promise.all(variants.map((search) => fetchOpenAlexWorksPage(request, search)));
+  const works = dedupeWorksById(pages.flat());
+
+  worksCache.set(cacheKey, { expiresAt: Date.now() + CACHE_TTL_MS, works });
+  return works;
+}
+
+async function fetchOpenAlexWorksPage(request: ResearchMapRequest, search: string): Promise<OpenAlexWork[]> {
+  const response = await fetch(buildOpenAlexWorksUrl(request, 200, search), {
     headers: {
       Accept: "application/json"
     },
@@ -76,9 +172,26 @@ export async function fetchOpenAlexWorks(request: ResearchMapRequest): Promise<O
   }
 
   const payload = (await response.json()) as { results?: OpenAlexWork[] };
-  const works = payload.results ?? [];
-  worksCache.set(cacheKey, { expiresAt: Date.now() + CACHE_TTL_MS, works });
-  return works;
+  return payload.results ?? [];
+}
+
+/**
+ * Merge results from several query variants into a single list, keeping the first
+ * occurrence of each work (the primary-query ordering wins) and dropping duplicates by
+ * normalized OpenAlex work id. Works missing an id are kept as-is.
+ */
+export function dedupeWorksById(works: OpenAlexWork[]): OpenAlexWork[] {
+  const seen = new Set<string>();
+  const merged: OpenAlexWork[] = [];
+  for (const work of works) {
+    const id = work.id ? normalizeOpenAlexWorkId(work.id) : "";
+    if (id) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+    }
+    merged.push(work);
+  }
+  return merged;
 }
 
 export function buildOpenAlexWorksByIdsUrl(ids: string[]): string {
@@ -86,7 +199,7 @@ export function buildOpenAlexWorksByIdsUrl(ids: string[]): string {
   url.searchParams.set("filter", `ids.openalex:${ids.map(normalizeOpenAlexWorkId).join("|")}`);
   url.searchParams.set("select", REFERENCE_SELECT_FIELDS);
   url.searchParams.set("per-page", String(Math.min(Math.max(ids.length, 1), 100)));
-  return url.toString();
+  return applyMailto(url).toString();
 }
 
 export async function fetchOpenAlexWorksByIds(ids: string[]): Promise<OpenAlexWork[]> {
@@ -120,7 +233,7 @@ export function buildOpenAlexCitationHistoryUrl(workId: string): string {
   url.searchParams.set("filter", `cites:${normalizeOpenAlexWorkId(workId)}`);
   url.searchParams.set("group_by", "publication_year");
   url.searchParams.set("per-page", "200");
-  return url.toString();
+  return applyMailto(url).toString();
 }
 
 export async function fetchCitationHistoryForWorks(workIds: string[]): Promise<Map<string, CitationHistoryResult>> {

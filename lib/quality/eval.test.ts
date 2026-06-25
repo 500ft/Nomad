@@ -6,6 +6,26 @@ import { describe, expect, it } from "vitest";
 import type { OpenAlexWork, ResearchMapRequest } from "../types";
 import { buildV2ResearchMap } from "./v2-pipeline";
 
+/**
+ * v2 evaluation harness — deterministic regression suite over hand-labeled OpenAlex captures.
+ *
+ * Fixtures live in `test-fixtures/openalex/<slug>.json` in the shape:
+ *   { request: ResearchMapRequest, capturedAt: string, works: OpenAlexWork[] }
+ * `works` is a frozen OpenAlex `results` array; each test asserts a relevance/clustering
+ * invariant (no drift in foundational picks, mega-clusters split, canonical papers kept, etc.).
+ * The suite skips entirely when no fixtures are present, and individual topic tests early-return
+ * for slugs that have not been captured yet, so adding a fixture activates its checks instantly.
+ *
+ * To add a topic: drop `<slug>.json` here (capture via `fetchOpenAlexWorks`, hand-trim to the
+ * representative top works) and add/extend a `maybeIt` block keyed on that slug.
+ *
+ * NOTE — OPENAI_API_KEY: this harness is deterministic and needs NO API key. The OpenAI key only
+ * activates the *optional* relevance judge (lib/relevance-judge.ts, gated on RELEVANCE_JUDGE=1)
+ * and semantic embeddings (lib/embeddings.ts). To evaluate those layers end-to-end, run the app
+ * with the key set, e.g.:
+ *   OPENAI_API_KEY=... RELEVANCE_JUDGE=1 npm run dev
+ * and compare the produced map's foundational picks against the expected ids in these fixtures.
+ */
 const FIXTURE_DIR = join(__dirname, "..", "..", "test-fixtures", "openalex");
 
 type Fixture = {

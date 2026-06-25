@@ -36,6 +36,17 @@ OPENAI_API_KEY=... npm run dev
 
 If `OPENAI_API_KEY` is not set, the website still works and falls back to keyword, citation, and metadata scoring.
 
+## OpenAlex polite pool
+
+Set `OPENALEX_MAILTO` to a contact email to route OpenAlex requests through the
+[polite pool](https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication#the-polite-pool):
+
+```bash
+OPENALEX_MAILTO=you@example.com npm run dev
+```
+
+It is optional; when unset, requests go through the default pool unchanged.
+
 ## MVP Scope
 
 - Topic search
@@ -52,7 +63,8 @@ V1 does not include accounts, saved reports, PDF export, embedding clustering, i
 
 ## Status
 
-**v1 shipped and frozen.** Tests (`npm test`) and the production build
-(`npm run build`) are green. The project is in maintenance-only mode — see
-[`ROADMAP.md`](ROADMAP.md) for the rationale and the conditions under which v2
-work would resume.
+**v2 active (bounded).** v1 shipped green and was briefly frozen; it is now
+unfrozen for a deliberately small v2 focused on OpenAlex recall and a
+deterministic evaluation harness. Tests (`npm test`) and the production build
+(`npm run build`) stay green. See [`ROADMAP.md`](ROADMAP.md) for the v2 scope,
+the explicit exclusions, and the superseded freeze decision.

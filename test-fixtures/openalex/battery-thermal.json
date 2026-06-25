@@ -1,0 +1,4997 @@
+{
+  "request": {
+    "topic": "battery thermal management",
+    "field": "mechanical engineering",
+    "experienceLevel": "intermediate",
+    "goal": "read",
+    "fromYear": 2018,
+    "toYear": 2026
+  },
+  "capturedAt": "2026-06-25T00:00:00.000Z",
+  "works": [
+    {
+      "id": "https://openalex.org/W_BT_1",
+      "doi": "https://doi.org/10.1000/W_BT_1",
+      "display_name": "Investigation of liquid cooling for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 30,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_0",
+            "display_name": "cooling Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "liquid"
+        },
+        {
+          "id": null,
+          "display_name": "cooling"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "liquid": [
+          2,
+          10
+        ],
+        "cooling": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "1)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 12
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 18
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_2",
+      "doi": "https://doi.org/10.1000/W_BT_2",
+      "display_name": "Investigation of liquid cooling for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 33,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_0",
+            "display_name": "cooling Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "liquid"
+        },
+        {
+          "id": null,
+          "display_name": "cooling"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "liquid": [
+          2,
+          10
+        ],
+        "cooling": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "2)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 13
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 20
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_3",
+      "doi": "https://doi.org/10.1000/W_BT_3",
+      "display_name": "Investigation of liquid cooling for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 36,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_0",
+            "display_name": "cooling Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "liquid"
+        },
+        {
+          "id": null,
+          "display_name": "cooling"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "liquid": [
+          2,
+          10
+        ],
+        "cooling": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "3)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 14
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 22
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_4",
+      "doi": "https://doi.org/10.1000/W_BT_4",
+      "display_name": "Investigation of channel cooling for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 35,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_1",
+            "display_name": "cooling Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "channel"
+        },
+        {
+          "id": null,
+          "display_name": "cooling"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "channel": [
+          2,
+          10
+        ],
+        "cooling": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "1)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 14
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 21
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_5",
+      "doi": "https://doi.org/10.1000/W_BT_5",
+      "display_name": "Investigation of channel cooling for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 38,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_1",
+            "display_name": "cooling Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "channel"
+        },
+        {
+          "id": null,
+          "display_name": "cooling"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "channel": [
+          2,
+          10
+        ],
+        "cooling": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "2)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 15
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 23
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_6",
+      "doi": "https://doi.org/10.1000/W_BT_6",
+      "display_name": "Investigation of channel cooling for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 41,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_1",
+            "display_name": "cooling Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "channel"
+        },
+        {
+          "id": null,
+          "display_name": "cooling"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "channel": [
+          2,
+          10
+        ],
+        "cooling": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "3)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 16
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 25
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_7",
+      "doi": "https://doi.org/10.1000/W_BT_7",
+      "display_name": "Investigation of coolant flow rate for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 40,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_2",
+            "display_name": "cooling Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "coolant"
+        },
+        {
+          "id": null,
+          "display_name": "flow"
+        },
+        {
+          "id": null,
+          "display_name": "rate"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "coolant": [
+          2,
+          11
+        ],
+        "flow": [
+          3,
+          12
+        ],
+        "rate": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "1)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 16
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 24
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_8",
+      "doi": "https://doi.org/10.1000/W_BT_8",
+      "display_name": "Investigation of coolant flow rate for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 43,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_2",
+            "display_name": "cooling Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "coolant"
+        },
+        {
+          "id": null,
+          "display_name": "flow"
+        },
+        {
+          "id": null,
+          "display_name": "rate"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "coolant": [
+          2,
+          11
+        ],
+        "flow": [
+          3,
+          12
+        ],
+        "rate": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "2)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 17
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 26
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_9",
+      "doi": "https://doi.org/10.1000/W_BT_9",
+      "display_name": "Investigation of coolant flow rate for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 46,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_2",
+            "display_name": "cooling Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "coolant"
+        },
+        {
+          "id": null,
+          "display_name": "flow"
+        },
+        {
+          "id": null,
+          "display_name": "rate"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "coolant": [
+          2,
+          11
+        ],
+        "flow": [
+          3,
+          12
+        ],
+        "rate": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "3)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 18
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 28
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_10",
+      "doi": "https://doi.org/10.1000/W_BT_10",
+      "display_name": "Investigation of cold plate for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 45,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_3",
+            "display_name": "cooling Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "cold"
+        },
+        {
+          "id": null,
+          "display_name": "plate"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "cold": [
+          2,
+          10
+        ],
+        "plate": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "1)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 18
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 27
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_11",
+      "doi": "https://doi.org/10.1000/W_BT_11",
+      "display_name": "Investigation of cold plate for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 48,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_3",
+            "display_name": "cooling Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "cold"
+        },
+        {
+          "id": null,
+          "display_name": "plate"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "cold": [
+          2,
+          10
+        ],
+        "plate": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "2)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 19
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 29
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_12",
+      "doi": "https://doi.org/10.1000/W_BT_12",
+      "display_name": "Investigation of cold plate for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 51,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_cooling_3",
+            "display_name": "cooling Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "cold"
+        },
+        {
+          "id": null,
+          "display_name": "plate"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "cold": [
+          2,
+          10
+        ],
+        "plate": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "3)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 20
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 31
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_13",
+      "doi": "https://doi.org/10.1000/W_BT_13",
+      "display_name": "Investigation of phase change material for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 30,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_0",
+            "display_name": "pcm Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "phase"
+        },
+        {
+          "id": null,
+          "display_name": "change"
+        },
+        {
+          "id": null,
+          "display_name": "material"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "phase": [
+          2,
+          11
+        ],
+        "change": [
+          3,
+          12
+        ],
+        "material": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "1)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 12
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 18
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_14",
+      "doi": "https://doi.org/10.1000/W_BT_14",
+      "display_name": "Investigation of phase change material for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 33,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_0",
+            "display_name": "pcm Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "phase"
+        },
+        {
+          "id": null,
+          "display_name": "change"
+        },
+        {
+          "id": null,
+          "display_name": "material"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "phase": [
+          2,
+          11
+        ],
+        "change": [
+          3,
+          12
+        ],
+        "material": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "2)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 13
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 20
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_15",
+      "doi": "https://doi.org/10.1000/W_BT_15",
+      "display_name": "Investigation of phase change material for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 36,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_0",
+            "display_name": "pcm Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "phase"
+        },
+        {
+          "id": null,
+          "display_name": "change"
+        },
+        {
+          "id": null,
+          "display_name": "material"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "phase": [
+          2,
+          11
+        ],
+        "change": [
+          3,
+          12
+        ],
+        "material": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "3)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 14
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 22
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_16",
+      "doi": "https://doi.org/10.1000/W_BT_16",
+      "display_name": "Investigation of paraffin pcm latent heat for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 35,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_1",
+            "display_name": "pcm Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "paraffin"
+        },
+        {
+          "id": null,
+          "display_name": "pcm"
+        },
+        {
+          "id": null,
+          "display_name": "latent"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "paraffin": [
+          2,
+          12
+        ],
+        "pcm": [
+          3,
+          13
+        ],
+        "latent": [
+          4,
+          14
+        ],
+        "heat": [
+          5,
+          15
+        ],
+        "for": [
+          6
+        ],
+        "battery": [
+          7
+        ],
+        "thermal": [
+          8
+        ],
+        "management": [
+          9
+        ],
+        "(study": [
+          10
+        ],
+        "1)": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 14
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 21
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_17",
+      "doi": "https://doi.org/10.1000/W_BT_17",
+      "display_name": "Investigation of paraffin pcm latent heat for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 38,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_1",
+            "display_name": "pcm Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "paraffin"
+        },
+        {
+          "id": null,
+          "display_name": "pcm"
+        },
+        {
+          "id": null,
+          "display_name": "latent"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "paraffin": [
+          2,
+          12
+        ],
+        "pcm": [
+          3,
+          13
+        ],
+        "latent": [
+          4,
+          14
+        ],
+        "heat": [
+          5,
+          15
+        ],
+        "for": [
+          6
+        ],
+        "battery": [
+          7
+        ],
+        "thermal": [
+          8
+        ],
+        "management": [
+          9
+        ],
+        "(study": [
+          10
+        ],
+        "2)": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 15
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 23
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_18",
+      "doi": "https://doi.org/10.1000/W_BT_18",
+      "display_name": "Investigation of paraffin pcm latent heat for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 41,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_1",
+            "display_name": "pcm Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "paraffin"
+        },
+        {
+          "id": null,
+          "display_name": "pcm"
+        },
+        {
+          "id": null,
+          "display_name": "latent"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "paraffin": [
+          2,
+          12
+        ],
+        "pcm": [
+          3,
+          13
+        ],
+        "latent": [
+          4,
+          14
+        ],
+        "heat": [
+          5,
+          15
+        ],
+        "for": [
+          6
+        ],
+        "battery": [
+          7
+        ],
+        "thermal": [
+          8
+        ],
+        "management": [
+          9
+        ],
+        "(study": [
+          10
+        ],
+        "3)": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 16
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 25
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_19",
+      "doi": "https://doi.org/10.1000/W_BT_19",
+      "display_name": "Investigation of nano-enhanced pcm storage for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 40,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_2",
+            "display_name": "pcm Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "nano-enhanced"
+        },
+        {
+          "id": null,
+          "display_name": "pcm"
+        },
+        {
+          "id": null,
+          "display_name": "storage"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "nano-enhanced": [
+          2,
+          11
+        ],
+        "pcm": [
+          3,
+          12
+        ],
+        "storage": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "1)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 16
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 24
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_20",
+      "doi": "https://doi.org/10.1000/W_BT_20",
+      "display_name": "Investigation of nano-enhanced pcm storage for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 43,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_2",
+            "display_name": "pcm Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "nano-enhanced"
+        },
+        {
+          "id": null,
+          "display_name": "pcm"
+        },
+        {
+          "id": null,
+          "display_name": "storage"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "nano-enhanced": [
+          2,
+          11
+        ],
+        "pcm": [
+          3,
+          12
+        ],
+        "storage": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "2)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 17
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 26
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_21",
+      "doi": "https://doi.org/10.1000/W_BT_21",
+      "display_name": "Investigation of nano-enhanced pcm storage for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 46,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_2",
+            "display_name": "pcm Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "nano-enhanced"
+        },
+        {
+          "id": null,
+          "display_name": "pcm"
+        },
+        {
+          "id": null,
+          "display_name": "storage"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "nano-enhanced": [
+          2,
+          11
+        ],
+        "pcm": [
+          3,
+          12
+        ],
+        "storage": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "3)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 18
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 28
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_22",
+      "doi": "https://doi.org/10.1000/W_BT_22",
+      "display_name": "Investigation of composite pcm for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 45,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_3",
+            "display_name": "pcm Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "composite"
+        },
+        {
+          "id": null,
+          "display_name": "pcm"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "composite": [
+          2,
+          10
+        ],
+        "pcm": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "1)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 18
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 27
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_23",
+      "doi": "https://doi.org/10.1000/W_BT_23",
+      "display_name": "Investigation of composite pcm for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 48,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_3",
+            "display_name": "pcm Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "composite"
+        },
+        {
+          "id": null,
+          "display_name": "pcm"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "composite": [
+          2,
+          10
+        ],
+        "pcm": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "2)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 19
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 29
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_24",
+      "doi": "https://doi.org/10.1000/W_BT_24",
+      "display_name": "Investigation of composite pcm for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 51,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_pcm_3",
+            "display_name": "pcm Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "composite"
+        },
+        {
+          "id": null,
+          "display_name": "pcm"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "composite": [
+          2,
+          10
+        ],
+        "pcm": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "thermal": [
+          6
+        ],
+        "management": [
+          7
+        ],
+        "(study": [
+          8
+        ],
+        "3)": [
+          9
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 20
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 31
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_25",
+      "doi": "https://doi.org/10.1000/W_BT_25",
+      "display_name": "Investigation of heat pipe loop for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 30,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_0",
+            "display_name": "heatpipe Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        },
+        {
+          "id": null,
+          "display_name": "loop"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "heat": [
+          2,
+          11
+        ],
+        "pipe": [
+          3,
+          12
+        ],
+        "loop": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "1)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 12
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 18
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_26",
+      "doi": "https://doi.org/10.1000/W_BT_26",
+      "display_name": "Investigation of heat pipe loop for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 33,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_0",
+            "display_name": "heatpipe Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        },
+        {
+          "id": null,
+          "display_name": "loop"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "heat": [
+          2,
+          11
+        ],
+        "pipe": [
+          3,
+          12
+        ],
+        "loop": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "2)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 13
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 20
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_27",
+      "doi": "https://doi.org/10.1000/W_BT_27",
+      "display_name": "Investigation of heat pipe loop for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 36,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_0",
+            "display_name": "heatpipe Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        },
+        {
+          "id": null,
+          "display_name": "loop"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "heat": [
+          2,
+          11
+        ],
+        "pipe": [
+          3,
+          12
+        ],
+        "loop": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "3)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 14
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 22
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_28",
+      "doi": "https://doi.org/10.1000/W_BT_28",
+      "display_name": "Investigation of vapor heat pipe condenser for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 35,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_1",
+            "display_name": "heatpipe Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "vapor"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        },
+        {
+          "id": null,
+          "display_name": "condenser"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "vapor": [
+          2,
+          12
+        ],
+        "heat": [
+          3,
+          13
+        ],
+        "pipe": [
+          4,
+          14
+        ],
+        "condenser": [
+          5,
+          15
+        ],
+        "for": [
+          6
+        ],
+        "battery": [
+          7
+        ],
+        "thermal": [
+          8
+        ],
+        "management": [
+          9
+        ],
+        "(study": [
+          10
+        ],
+        "1)": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 14
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 21
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_29",
+      "doi": "https://doi.org/10.1000/W_BT_29",
+      "display_name": "Investigation of vapor heat pipe condenser for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 38,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_1",
+            "display_name": "heatpipe Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "vapor"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        },
+        {
+          "id": null,
+          "display_name": "condenser"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "vapor": [
+          2,
+          12
+        ],
+        "heat": [
+          3,
+          13
+        ],
+        "pipe": [
+          4,
+          14
+        ],
+        "condenser": [
+          5,
+          15
+        ],
+        "for": [
+          6
+        ],
+        "battery": [
+          7
+        ],
+        "thermal": [
+          8
+        ],
+        "management": [
+          9
+        ],
+        "(study": [
+          10
+        ],
+        "2)": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 15
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 23
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_30",
+      "doi": "https://doi.org/10.1000/W_BT_30",
+      "display_name": "Investigation of vapor heat pipe condenser for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 41,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_1",
+            "display_name": "heatpipe Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "vapor"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        },
+        {
+          "id": null,
+          "display_name": "condenser"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "vapor": [
+          2,
+          12
+        ],
+        "heat": [
+          3,
+          13
+        ],
+        "pipe": [
+          4,
+          14
+        ],
+        "condenser": [
+          5,
+          15
+        ],
+        "for": [
+          6
+        ],
+        "battery": [
+          7
+        ],
+        "thermal": [
+          8
+        ],
+        "management": [
+          9
+        ],
+        "(study": [
+          10
+        ],
+        "3)": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 16
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 25
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_31",
+      "doi": "https://doi.org/10.1000/W_BT_31",
+      "display_name": "Investigation of pulsating heat pipe for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 40,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_2",
+            "display_name": "heatpipe Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "pulsating"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "pulsating": [
+          2,
+          11
+        ],
+        "heat": [
+          3,
+          12
+        ],
+        "pipe": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "1)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 16
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 24
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_32",
+      "doi": "https://doi.org/10.1000/W_BT_32",
+      "display_name": "Investigation of pulsating heat pipe for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 43,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_2",
+            "display_name": "heatpipe Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "pulsating"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "pulsating": [
+          2,
+          11
+        ],
+        "heat": [
+          3,
+          12
+        ],
+        "pipe": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "2)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 17
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 26
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_33",
+      "doi": "https://doi.org/10.1000/W_BT_33",
+      "display_name": "Investigation of pulsating heat pipe for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 46,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_2",
+            "display_name": "heatpipe Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "pulsating"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "pulsating": [
+          2,
+          11
+        ],
+        "heat": [
+          3,
+          12
+        ],
+        "pipe": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "3)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 18
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 28
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_34",
+      "doi": "https://doi.org/10.1000/W_BT_34",
+      "display_name": "Investigation of flat heat pipe for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 45,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_3",
+            "display_name": "heatpipe Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "flat"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "flat": [
+          2,
+          11
+        ],
+        "heat": [
+          3,
+          12
+        ],
+        "pipe": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "1)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 18
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 27
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_35",
+      "doi": "https://doi.org/10.1000/W_BT_35",
+      "display_name": "Investigation of flat heat pipe for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 48,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_3",
+            "display_name": "heatpipe Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "flat"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "flat": [
+          2,
+          11
+        ],
+        "heat": [
+          3,
+          12
+        ],
+        "pipe": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "2)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 19
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 29
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_36",
+      "doi": "https://doi.org/10.1000/W_BT_36",
+      "display_name": "Investigation of flat heat pipe for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 51,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_heatpipe_3",
+            "display_name": "heatpipe Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "flat"
+        },
+        {
+          "id": null,
+          "display_name": "heat"
+        },
+        {
+          "id": null,
+          "display_name": "pipe"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "flat": [
+          2,
+          11
+        ],
+        "heat": [
+          3,
+          12
+        ],
+        "pipe": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "thermal": [
+          7
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "3)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 20
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 31
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_37",
+      "doi": "https://doi.org/10.1000/W_BT_37",
+      "display_name": "Investigation of thermal runaway propagation for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 30,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_0",
+            "display_name": "runaway Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        },
+        {
+          "id": null,
+          "display_name": "propagation"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "thermal": [
+          2,
+          7,
+          11
+        ],
+        "runaway": [
+          3,
+          12
+        ],
+        "propagation": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "1)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 12
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 18
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_38",
+      "doi": "https://doi.org/10.1000/W_BT_38",
+      "display_name": "Investigation of thermal runaway propagation for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 33,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_0",
+            "display_name": "runaway Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        },
+        {
+          "id": null,
+          "display_name": "propagation"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "thermal": [
+          2,
+          7,
+          11
+        ],
+        "runaway": [
+          3,
+          12
+        ],
+        "propagation": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "2)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 13
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 20
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_39",
+      "doi": "https://doi.org/10.1000/W_BT_39",
+      "display_name": "Investigation of thermal runaway propagation for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 36,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_0",
+            "display_name": "runaway Lab 0"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        },
+        {
+          "id": null,
+          "display_name": "propagation"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "thermal": [
+          2,
+          7,
+          11
+        ],
+        "runaway": [
+          3,
+          12
+        ],
+        "propagation": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "3)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 14
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 22
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_40",
+      "doi": "https://doi.org/10.1000/W_BT_40",
+      "display_name": "Investigation of abuse thermal runaway model for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 35,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_1",
+            "display_name": "runaway Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "abuse"
+        },
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        },
+        {
+          "id": null,
+          "display_name": "model"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "abuse": [
+          2,
+          12
+        ],
+        "thermal": [
+          3,
+          8,
+          13
+        ],
+        "runaway": [
+          4,
+          14
+        ],
+        "model": [
+          5,
+          15
+        ],
+        "for": [
+          6
+        ],
+        "battery": [
+          7
+        ],
+        "management": [
+          9
+        ],
+        "(study": [
+          10
+        ],
+        "1)": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 14
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 21
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_41",
+      "doi": "https://doi.org/10.1000/W_BT_41",
+      "display_name": "Investigation of abuse thermal runaway model for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 38,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_1",
+            "display_name": "runaway Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "abuse"
+        },
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        },
+        {
+          "id": null,
+          "display_name": "model"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "abuse": [
+          2,
+          12
+        ],
+        "thermal": [
+          3,
+          8,
+          13
+        ],
+        "runaway": [
+          4,
+          14
+        ],
+        "model": [
+          5,
+          15
+        ],
+        "for": [
+          6
+        ],
+        "battery": [
+          7
+        ],
+        "management": [
+          9
+        ],
+        "(study": [
+          10
+        ],
+        "2)": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 15
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 23
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_42",
+      "doi": "https://doi.org/10.1000/W_BT_42",
+      "display_name": "Investigation of abuse thermal runaway model for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 41,
+      "citation_normalized_percentile": {
+        "value": 0.6000000000000001
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_1",
+            "display_name": "runaway Lab 1"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "abuse"
+        },
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        },
+        {
+          "id": null,
+          "display_name": "model"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "abuse": [
+          2,
+          12
+        ],
+        "thermal": [
+          3,
+          8,
+          13
+        ],
+        "runaway": [
+          4,
+          14
+        ],
+        "model": [
+          5,
+          15
+        ],
+        "for": [
+          6
+        ],
+        "battery": [
+          7
+        ],
+        "management": [
+          9
+        ],
+        "(study": [
+          10
+        ],
+        "3)": [
+          11
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 16
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 25
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_43",
+      "doi": "https://doi.org/10.1000/W_BT_43",
+      "display_name": "Investigation of overcharge thermal runaway for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 40,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_2",
+            "display_name": "runaway Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "overcharge"
+        },
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "overcharge": [
+          2,
+          11
+        ],
+        "thermal": [
+          3,
+          7,
+          12
+        ],
+        "runaway": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "1)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 16
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 24
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_44",
+      "doi": "https://doi.org/10.1000/W_BT_44",
+      "display_name": "Investigation of overcharge thermal runaway for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 43,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_2",
+            "display_name": "runaway Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "overcharge"
+        },
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "overcharge": [
+          2,
+          11
+        ],
+        "thermal": [
+          3,
+          7,
+          12
+        ],
+        "runaway": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "2)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 17
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 26
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_45",
+      "doi": "https://doi.org/10.1000/W_BT_45",
+      "display_name": "Investigation of overcharge thermal runaway for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 46,
+      "citation_normalized_percentile": {
+        "value": 0.65
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_2",
+            "display_name": "runaway Lab 2"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "overcharge"
+        },
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "overcharge": [
+          2,
+          11
+        ],
+        "thermal": [
+          3,
+          7,
+          12
+        ],
+        "runaway": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "3)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 18
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 28
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_46",
+      "doi": "https://doi.org/10.1000/W_BT_46",
+      "display_name": "Investigation of venting thermal runaway for battery thermal management (study 1)",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 45,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_3",
+            "display_name": "runaway Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "venting"
+        },
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "venting": [
+          2,
+          11
+        ],
+        "thermal": [
+          3,
+          7,
+          12
+        ],
+        "runaway": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "1)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 18
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 27
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_47",
+      "doi": "https://doi.org/10.1000/W_BT_47",
+      "display_name": "Investigation of venting thermal runaway for battery thermal management (study 2)",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 48,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_3",
+            "display_name": "runaway Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "venting"
+        },
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "venting": [
+          2,
+          11
+        ],
+        "thermal": [
+          3,
+          7,
+          12
+        ],
+        "runaway": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "2)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 19
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 29
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_48",
+      "doi": "https://doi.org/10.1000/W_BT_48",
+      "display_name": "Investigation of venting thermal runaway for battery thermal management (study 3)",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 51,
+      "citation_normalized_percentile": {
+        "value": 0.55
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_runaway_3",
+            "display_name": "runaway Lab 3"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BTMS",
+        "display_name": "Battery thermal management"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BTMS",
+          "display_name": "Battery thermal management"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "venting"
+        },
+        {
+          "id": null,
+          "display_name": "thermal"
+        },
+        {
+          "id": null,
+          "display_name": "runaway"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Investigation": [
+          0
+        ],
+        "of": [
+          1
+        ],
+        "venting": [
+          2,
+          11
+        ],
+        "thermal": [
+          3,
+          7,
+          12
+        ],
+        "runaway": [
+          4,
+          13
+        ],
+        "for": [
+          5
+        ],
+        "battery": [
+          6
+        ],
+        "management": [
+          8
+        ],
+        "(study": [
+          9
+        ],
+        "3)": [
+          10
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 20
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 31
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_Oa",
+      "doi": "https://doi.org/10.1000/W_BT_Oa",
+      "display_name": "Lithium ion battery electrode degradation modeling",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 60,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_elec",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_ELEC",
+        "display_name": "Battery electrode chemistry"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_ELEC",
+          "display_name": "Battery electrode chemistry"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "electrode"
+        },
+        {
+          "id": null,
+          "display_name": "degradation"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Lithium": [
+          0
+        ],
+        "ion": [
+          1
+        ],
+        "battery": [
+          2
+        ],
+        "electrode": [
+          3,
+          6
+        ],
+        "degradation": [
+          4,
+          7
+        ],
+        "modeling": [
+          5
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 24
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 36
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_Ob",
+      "doi": "https://doi.org/10.1000/W_BT_Ob",
+      "display_name": "Battery pack structural vibration durability testing",
+      "relevance_score": 80,
+      "publication_year": 2021,
+      "publication_date": "2021-03-01",
+      "cited_by_count": 35,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_struct",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_STRUCT",
+        "display_name": "Battery pack mechanics"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_STRUCT",
+          "display_name": "Battery pack mechanics"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "vibration"
+        },
+        {
+          "id": null,
+          "display_name": "structural"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Battery": [
+          0
+        ],
+        "pack": [
+          1
+        ],
+        "structural": [
+          2,
+          7
+        ],
+        "vibration": [
+          3,
+          6
+        ],
+        "durability": [
+          4
+        ],
+        "testing": [
+          5
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2021,
+          "cited_by_count": 14
+        },
+        {
+          "year": 2022,
+          "cited_by_count": 21
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_Oc",
+      "doi": "https://doi.org/10.1000/W_BT_Oc",
+      "display_name": "Fast charging protocol optimization for lithium cells",
+      "relevance_score": 80,
+      "publication_year": 2023,
+      "publication_date": "2023-03-01",
+      "cited_by_count": 50,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_charge",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_CHARGE",
+        "display_name": "Battery charging control"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_CHARGE",
+          "display_name": "Battery charging control"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "fast charging"
+        },
+        {
+          "id": null,
+          "display_name": "protocol"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "Fast": [
+          0
+        ],
+        "charging": [
+          1,
+          8
+        ],
+        "protocol": [
+          2,
+          9
+        ],
+        "optimization": [
+          3
+        ],
+        "for": [
+          4
+        ],
+        "lithium": [
+          5
+        ],
+        "cells": [
+          6
+        ],
+        "fast": [
+          7
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2023,
+          "cited_by_count": 20
+        },
+        {
+          "year": 2024,
+          "cited_by_count": 30
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    },
+    {
+      "id": "https://openalex.org/W_BT_Od",
+      "doi": "https://doi.org/10.1000/W_BT_Od",
+      "display_name": "State of charge estimation for battery management systems",
+      "relevance_score": 80,
+      "publication_year": 2022,
+      "publication_date": "2022-03-01",
+      "cited_by_count": 45,
+      "citation_normalized_percentile": {
+        "value": 0.6
+      },
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A_bms",
+            "display_name": "Generic Author"
+          }
+        }
+      ],
+      "primary_topic": {
+        "id": "https://openalex.org/T_BMS",
+        "display_name": "Battery state estimation"
+      },
+      "topics": [
+        {
+          "id": "https://openalex.org/T_BMS",
+          "display_name": "Battery state estimation"
+        }
+      ],
+      "keywords": [
+        {
+          "id": null,
+          "display_name": "state of charge"
+        },
+        {
+          "id": null,
+          "display_name": "estimation"
+        }
+      ],
+      "type": "article",
+      "is_retracted": false,
+      "abstract_inverted_index": {
+        "State": [
+          0
+        ],
+        "of": [
+          1,
+          9
+        ],
+        "charge": [
+          2,
+          10
+        ],
+        "estimation": [
+          3,
+          11
+        ],
+        "for": [
+          4
+        ],
+        "battery": [
+          5
+        ],
+        "management": [
+          6
+        ],
+        "systems": [
+          7
+        ],
+        "state": [
+          8
+        ]
+      },
+      "counts_by_year": [
+        {
+          "year": 2022,
+          "cited_by_count": 18
+        },
+        {
+          "year": 2023,
+          "cited_by_count": 27
+        }
+      ],
+      "referenced_works": [],
+      "referenced_works_count": 0,
+      "fwci": 1.2,
+      "cited_by_api_url": null
+    }
+  ]
+}
