@@ -1,14 +1,29 @@
 # Nomad
 
-Nomad builds research starting maps for mechanical engineering project ideas using OpenAlex metadata.
+Nomad is a Next.js research-mapping app that turns a mechanical-engineering topic
+into a ranked starting map of papers, active researchers, subtopics, citation
+signals, and evidence-backed project ideas.
 
-The core workflow is simple:
+Broad literature searches make it difficult to decide what to read first. Nomad
+uses OpenAlex metadata, deterministic ranking, confidence checks, and optional
+OpenAI embeddings to produce a focused field-entry report instead of a general
+paper feed.
+
+### Key capabilities
+
+- Ranks foundational papers and recently influential work.
+- Identifies active researchers, topics, keywords, and citation signals.
+- Generates evidence-linked project directions with confidence and warnings.
+- Works without an API key and adds semantic relevance when one is available.
+
+**For:** mechanical-engineering students and researchers starting a literature
+review or testing a project idea.
+
+The core workflow is:
 
 ```text
 engineering topic in -> field-entry research map out
 ```
-
-Nomad is not a broad paper discovery feed. It returns a focused report: what to read first, what has recent influence, who is active, what subtopics matter, citation signals, and possible project directions backed by evidence.
 
 ## Run
 
