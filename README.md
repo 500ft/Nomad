@@ -2,10 +2,10 @@
 
 Nomad is a Next.js research-mapping app that turns a mechanical-engineering topic
 into a ranked starting map of papers, active researchers, subtopics, citation
-signals, and evidence-backed project ideas.
+signals, and project ideas linked to source papers.
 
 Broad literature searches make it difficult to decide what to read first. Nomad
-uses OpenAlex metadata, deterministic ranking, confidence checks, and optional
+uses OpenAlex metadata, deterministic ranking, confidence scoring, and optional
 OpenAI embeddings to produce a focused field-entry report instead of a general
 paper feed.
 
@@ -13,7 +13,7 @@ paper feed.
 
 - Ranks foundational papers and recently influential work.
 - Identifies active researchers, topics, keywords, and citation signals.
-- Generates evidence-linked project directions with confidence and warnings.
+- Generates source-linked project directions with confidence scores and warnings.
 - Works without an API key and adds semantic relevance when one is available.
 
 **For:** mechanical-engineering students and researchers starting a literature
@@ -71,15 +71,14 @@ It is optional; when unset, requests go through the default pool unchanged.
 - Topic clustering from OpenAlex topics and keywords
 - Optional semantic relevance from OpenAI `text-embedding-3-small`
 - Citation signals
-- Evidence-backed project ideas
+- Project ideas linked to source papers
 - Computed confidence, warnings, and data-quality metrics
 
 V1 does not include accounts, saved reports, PDF export, embedding clustering, industry mapping, lab ranking, or research timelines.
 
 ## Status
 
-**v2 active (bounded).** v1 shipped green and was briefly frozen; it is now
-unfrozen for a deliberately small v2 focused on OpenAlex recall and a
-deterministic evaluation harness. Tests (`npm test`) and the production build
-(`npm run build`) stay green. See [`ROADMAP.md`](ROADMAP.md) for the v2 scope,
-the explicit exclusions, and the superseded freeze decision.
+**Version 2.** Version 1 is complete. Version 2 is limited to OpenAlex
+recall and a deterministic evaluation harness. Tests (`npm test`) and the
+production build (`npm run build`) currently pass. See [`ROADMAP.md`](ROADMAP.md)
+for the v2 scope, exclusions, and superseded freeze decision.
