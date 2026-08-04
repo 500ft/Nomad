@@ -3,5 +3,8 @@
 node_modules
 .npm-cache
 coverage
+.env
 .env*.local
+!.env.example
+npm-debug.log*
 *.tsbuildinfo
