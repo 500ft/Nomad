@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "project": "Nomad",
+  "figures": [
+    {
+      "id": "readme-pipeline",
+      "evidence_type": "architecture diagram",
+      "generator": null,
+      "renderer": "GitHub Mermaid",
+      "command": null,
+      "inputs": ["README.md"],
+      "outputs": ["runtime:README Mermaid diagram"]
+    },
+    {
+      "id": "knowledge-graph",
+      "evidence_type": "runtime derived visualization",
+      "generator": "lib/derive/graph.ts",
+      "renderer": "app/explore/_components/KnowledgeGraph.tsx",
+      "command": "npm run dev",
+      "inputs": [
+        "runtime:ResearchMapResponse from OpenAlex-backed API",
+        "lib/derive/graph.ts"
+      ],
+      "outputs": ["runtime:/explore knowledge-graph canvas"],
+      "notes": "Uses deterministic radial positions; force simulation is disabled."
+    },
+    {
+      "id": "citation-history-bars",
+      "evidence_type": "runtime source-data visualization",
+      "generator": "lib/citation-history-view.ts",
+      "renderer": "app/page.tsx",
+      "command": "npm run dev",
+      "inputs": ["runtime:OpenAlex counts_by_year"],
+      "outputs": ["runtime:/ citation-history bars"]
+    },
+    {
+      "id": "mind-map",
+      "evidence_type": "runtime derived visualization",
+      "generator": "lib/derive/mindmap.ts",
+      "renderer": "app/explore/_components/MindMap.tsx",
+      "command": "npm run dev",
+      "inputs": ["runtime:ResearchMapResponse from OpenAlex-backed API"],
+      "outputs": ["runtime:/explore mind-map view"]
+    },
+    {
+      "id": "reading-roadmap",
+      "evidence_type": "runtime derived visualization",
+      "generator": "lib/derive/roadmap.ts",
+      "renderer": "app/explore/_components/ReadingRoadmap.tsx",
+      "command": "npm run dev",
+      "inputs": ["runtime:ResearchMapResponse from OpenAlex-backed API"],
+      "outputs": ["runtime:/explore reading-roadmap view"]
+    },
+    {
+      "id": "trend-radar",
+      "evidence_type": "runtime derived visualization",
+      "generator": "lib/derive/trend.ts",
+      "renderer": "app/explore/_components/TrendRadar.tsx",
+      "command": "npm run dev",
+      "inputs": ["runtime:ResearchMapResponse from OpenAlex-backed API"],
+      "outputs": ["runtime:/explore trend-radar view"]
+    }
+  ]
+}
