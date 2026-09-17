@@ -50,7 +50,8 @@ timelines. These reopen only under the career-shift condition below.
 ### v2 exit criteria
 
 - Recall additions + eval fixtures are committed, `npm test` green (73 baseline
-  + new tests), `npm run build` green. **(met)**
+  + new tests as of this v2 cycle, 2026-06-25; see docs/evaluation-results.md for
+  the current count), `npm run build` green. **(met)**
 - Real eval numbers recorded once a key is available; embedding clustering ships
   only if it beats baseline on those numbers.
 
@@ -69,7 +70,8 @@ Done in the v1 freeze cycle:
 
 - [x] Commit all pending working-tree changes (expanded scoring vocabulary,
       relevance judge, types, tests).
-- [x] `npm test` green (73 passed, eval suite skipped without fixtures).
+- [x] `npm test` green (73 passed as of this v2 cycle, 2026-06-25, eval suite
+      skipped without fixtures; docs/evaluation-results.md carries the current count).
 - [x] `npm run build` green (typecheck + lint + production build).
 - [x] README documents run/verify/scope.
 
