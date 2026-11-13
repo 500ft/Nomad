@@ -1,0 +1,227 @@
+{
+  "status": "DRAFT REVIEW PACKET; PAPER SCOPE FROZEN; NO FORMAL CLOSURE SIGN-OFF",
+  "prepared": "2026-11-13",
+  "repository": "https://github.com/500ft/Nomad",
+  "branch": "codex/closure-review-20261113",
+  "report_source_pin": "be6bf7c836e1cb491099bc979c0d39f731617071",
+  "review_base_HEAD": "be6bf7c836e1cb491099bc979c0d39f731617071",
+  "HEAD_matches_report_pin": true,
+  "divergence_name_status": "",
+  "divergence_commits": "",
+  "AGENTS_files": [],
+  "instructions_read": [
+    {
+      "path": "CONTRIBUTING.md",
+      "sha256": "9f9ae0f747a1d2988033e30bf08e38638a9235218eacc183397ec588d95f6d29"
+    },
+    {
+      "path": "ROADMAP.md",
+      "sha256": "8f9ddd5e5a2d144483a5f966bca652f97c9cd5d64e7d03f9874287e116c0e8fe"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "1f121d6c701c64c3187932a8977946c9f116f666b0422689bac84196e5099ca5"
+    },
+    {
+      "path": "README.md",
+      "sha256": "1c2298cb92cbd02bb6df72e111d7cf0cf9ded92fb2354fc608b86910bec63a06"
+    }
+  ],
+  "source_records_copy_sha256": "14e1204f1f1bed7d38c5b42f02304b6da7e08694daa5cead64e16ec4d1300b24",
+  "source_evidence": [
+    {
+      "path": "README.md",
+      "report_recorded_checkout_sha256": "1c2298cb92cbd02bb6df72e111d7cf0cf9ded92fb2354fc608b86910bec63a06",
+      "git_HEAD_blob_sha256": "f9f6eb82d6e6b18197c9c7f241612a07d96ed8fcb7f6ac6e326398de00829381",
+      "working_file_sha256": "1c2298cb92cbd02bb6df72e111d7cf0cf9ded92fb2354fc608b86910bec63a06",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "LICENSE",
+      "report_recorded_checkout_sha256": "953ff0ed9b3808abfa7048eacf145c718e25e18feca41eabfbdd1306c0d78cc3",
+      "git_HEAD_blob_sha256": "a0fa1984dbaf4338009caa1a57f970118b066e5a4aa8e85d7a96fabc1673c7c8",
+      "working_file_sha256": "953ff0ed9b3808abfa7048eacf145c718e25e18feca41eabfbdd1306c0d78cc3",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "package.json",
+      "report_recorded_checkout_sha256": "4ceb983cd9d5d78242e48b9101619a22cbb39ff012cd5ef3dc882e86bcebb9ee",
+      "git_HEAD_blob_sha256": "a88e4fb2632e3b06ca8bdf5b8991507e58c7723fcf4eb1375bc35bca43573367",
+      "working_file_sha256": "4ceb983cd9d5d78242e48b9101619a22cbb39ff012cd5ef3dc882e86bcebb9ee",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "package-lock.json",
+      "report_recorded_checkout_sha256": "b2a9c00f45fe835e7dac59f3b18e1b1b85952654fbf32cd168a4aace0c072c06",
+      "git_HEAD_blob_sha256": "1a3112ef60ae186a04f7798286e8b3afcf3971b40a9e68f375e7cd8a78115ad5",
+      "working_file_sha256": "b2a9c00f45fe835e7dac59f3b18e1b1b85952654fbf32cd168a4aace0c072c06",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "docs/evaluation-results.md",
+      "report_recorded_checkout_sha256": "88f0a53103847d1971ccd7d70246e44d78c3a8b2fe6305b49242c23c7c0656f2",
+      "git_HEAD_blob_sha256": "30344800086a6350065fbae9e8fb900f9be7baa51b28ca502cc75f74b0d78a2d",
+      "working_file_sha256": "88f0a53103847d1971ccd7d70246e44d78c3a8b2fe6305b49242c23c7c0656f2",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "docs/data-and-figures.md",
+      "report_recorded_checkout_sha256": "a98339a6895b14ab9486364afdb301902c6e7da63fac766301928c0834b1d8ee",
+      "git_HEAD_blob_sha256": "4a1b2f1b010dfbb26437d250acd416ecc4f541ba5474a2415a42ce9935f223eb",
+      "working_file_sha256": "a98339a6895b14ab9486364afdb301902c6e7da63fac766301928c0834b1d8ee",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "docs/figure-manifest.json",
+      "report_recorded_checkout_sha256": "5a56881e15fcfc46add0240a7d178f5400e11c3579866eaa7e68b1f49f47bbb2",
+      "git_HEAD_blob_sha256": "d1f2431047027ece3be6facd2b6d19b1e40a326f45ad9ba282fa6fe269c8ef89",
+      "working_file_sha256": "5a56881e15fcfc46add0240a7d178f5400e11c3579866eaa7e68b1f49f47bbb2",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "lib/openalex.ts",
+      "report_recorded_checkout_sha256": "4ec121532fd52450073cd52a5a35f45209d54e49f75071593f08c690b60e88fb",
+      "git_HEAD_blob_sha256": "fcd38bc150f160875482c3e9cd7cf10d84a98fe7c9e80ef1558c6939d8ad1cac",
+      "working_file_sha256": "4ec121532fd52450073cd52a5a35f45209d54e49f75071593f08c690b60e88fb",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "lib/scoring.ts",
+      "report_recorded_checkout_sha256": "cdc1d2366a660c481e9ae8c234d1694efb58dfed385f16ce95545d60ab4bf22f",
+      "git_HEAD_blob_sha256": "c75aba953cd9f520392e61349fb5f7a325ea563cd768825e02abbd04736611ed",
+      "working_file_sha256": "cdc1d2366a660c481e9ae8c234d1694efb58dfed385f16ce95545d60ab4bf22f",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "lib/embeddings.ts",
+      "report_recorded_checkout_sha256": "b317479061c6b837017b1966fb12663c6aa1613438fbc8893a8167133cfa33c4",
+      "git_HEAD_blob_sha256": "8d4d77a06a24fffbf086730e249c8259cb42ac462b1257eb81793390da5522e3",
+      "working_file_sha256": "b317479061c6b837017b1966fb12663c6aa1613438fbc8893a8167133cfa33c4",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "lib/relevance-judge.ts",
+      "report_recorded_checkout_sha256": "1a9120ee0c8b7589fa4088230fc503243a7edff48dac23900bbf37e374142451",
+      "git_HEAD_blob_sha256": "1c8de2c9bb41536907c6f2eb776b922a7372fa49ebf8ee250be7a97351b2c378",
+      "working_file_sha256": "1a9120ee0c8b7589fa4088230fc503243a7edff48dac23900bbf37e374142451",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "lib/types.ts",
+      "report_recorded_checkout_sha256": "82e234af676c33be6960b6d7d056b1055dd5215f428000dee36730b38f024d52",
+      "git_HEAD_blob_sha256": "bc6fab1df691c160bd2ac78f3ed1dca39ba546a5dd95bf0436452bb5ff9a45cd",
+      "working_file_sha256": "82e234af676c33be6960b6d7d056b1055dd5215f428000dee36730b38f024d52",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "lib/quality/eval.test.ts",
+      "report_recorded_checkout_sha256": "2f2d9259168547e3bbfc2afc0131525ed4e283572579ea53ebfd5212992a9599",
+      "git_HEAD_blob_sha256": "957296a5593af58c001c770c4a6d93f5e5031b09038b90175df3b8cad89c1257",
+      "working_file_sha256": "2f2d9259168547e3bbfc2afc0131525ed4e283572579ea53ebfd5212992a9599",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "lib/quality/v2-pipeline.ts",
+      "report_recorded_checkout_sha256": "9ada330c1b0b08abc5a45cd647c42327b307deb49f8a5827503edd4705fbdc2a",
+      "git_HEAD_blob_sha256": "626809074c091f2ee2c942703c39e4fad936f2461b69abb78e45994914e91c53",
+      "working_file_sha256": "9ada330c1b0b08abc5a45cd647c42327b307deb49f8a5827503edd4705fbdc2a",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "lib/derive/graph.ts",
+      "report_recorded_checkout_sha256": "39f1bcde50ed4a784a8a53051bf4f5f297926f884a9947bec26a96c685fab4b1",
+      "git_HEAD_blob_sha256": "844f75935b1b31cdaa960bb3f2a7bb7c653ff129a7c479048b51db96efcac132",
+      "working_file_sha256": "39f1bcde50ed4a784a8a53051bf4f5f297926f884a9947bec26a96c685fab4b1",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "lib/derive/roadmap.ts",
+      "report_recorded_checkout_sha256": "56c41acc8876acc385b3e4a1aa4df4d031dddb58df096d0a57b055d1ba7925e0",
+      "git_HEAD_blob_sha256": "d99b9e9b388959025e1d6ca65a1b86a95f66a2ceeff2915dc40506be1fd7090b",
+      "working_file_sha256": "56c41acc8876acc385b3e4a1aa4df4d031dddb58df096d0a57b055d1ba7925e0",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "lib/derive/trend.ts",
+      "report_recorded_checkout_sha256": "8bafc186a0c3e4f6bd9bc9b8e17faedd5d1ca1ceb8fe6d861edaa5a56bb66903",
+      "git_HEAD_blob_sha256": "e1eab9087941c212d4f77c0898e42d59526a0fc2fe1619b67725f9ae01992d02",
+      "working_file_sha256": "8bafc186a0c3e4f6bd9bc9b8e17faedd5d1ca1ceb8fe6d861edaa5a56bb66903",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "test-fixtures/openalex/battery-thermal.json",
+      "report_recorded_checkout_sha256": "7d6d6cfa4e5f8bdb9cf0618237f96e6ad7153d321d69116706a9d28008a2d09e",
+      "git_HEAD_blob_sha256": "daab024db054a1659e1dfa93c6bab4ceca61f7a85b13c04b3bde9ccaec47f86c",
+      "working_file_sha256": "7d6d6cfa4e5f8bdb9cf0618237f96e6ad7153d321d69116706a9d28008a2d09e",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    },
+    {
+      "path": "test-fixtures/openalex/soft-robotics.json",
+      "report_recorded_checkout_sha256": "e03f2c0604e48310f1f0a5b4227555c93299c055627928a110230bde122b69d9",
+      "git_HEAD_blob_sha256": "bf14820b8a21d5b5a8d51a0b2451659fabab13c8f5936d8446911c6c2e20118f",
+      "working_file_sha256": "e03f2c0604e48310f1f0a5b4227555c93299c055627928a110230bde122b69d9",
+      "checkout_exactly_matches_report_hash": true,
+      "HEAD_blob_matches_checkout_content": true,
+      "checkout_representation": "Exact bytes if equal; otherwise Git LF versus Windows checkout CRLF, explicitly compared without rewriting either."
+    }
+  ],
+  "review_report": {
+    "path": "docs/closure/2026-11-review-report.pdf",
+    "sha256": "a53a8df649f68b1fc2149a94de554fe66dc33e068208a91042b9ad05d079b371",
+    "bytes": 69086,
+    "pages": 8,
+    "public_report_URL": "https://www.mergenulziibayar.com/downloads/reports/nomad.pdf"
+  },
+  "tests": "Fresh local contributor sequence on 2026-11-13 passed lint, Vitest and production build with tracked scientific-source hashes unchanged. Missing-fixture topic cases still return before their topic assertions. This is software validation only, not new retrieval-quality or user-benefit evidence, not an assertion count, and not a remote CI claim. Historical August results remain a separate source record.",
+  "approvals": {
+    "owner_closure_signoff": false,
+    "independent_Claude_review_signoff": false
+  },
+  "scientific_outputs": "Existing scientific result files remain frozen. Fresh contributor checks add a local software-check record only; no new API retrieval campaign, relevance/user study, CAD or solver run was performed for this packet.",
+  "owner_authorization": {
+    "recorded_date": "2026-11-13",
+    "authority": "Owner instruction in the current conversation",
+    "paper_scope_freeze_and_retained_implementation": true,
+    "documentation_implementation": true,
+    "non_enclosure_report_publication": true,
+    "boundary": "Draft review only; no final CLOSED wording, release tag, owner closure sign-off or Claude closure approval is inferred."
+  },
+  "public_path_policy": "Source and evidence locations use repository-relative paths or evidence basenames. Registered source, working-file and Git-blob hashes are unchanged.",
+  "review_base_context": "Source/result hashes and HEAD pins identify the pre-documentation review base. The new administrative commit does not claim to retain that same Git HEAD."
+}
